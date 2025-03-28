@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<main class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3 mt-5">
+      <form action="{% url 'create_predio' %}" method="POST" class="card card-body">
+        <h1>Registrar Predio</h1>
+        {% csrf_token %}
+
+        {% if error %}
+          <p class="alert alert-danger">{{ error }}</p>
+        {% endif %}
+
+        {{ form.as_p }}  <!-- Muestra los campos del formulario -->
+
+        <button class="btn btn-primary mt-3">Registrar Predio</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+{% endblock %}

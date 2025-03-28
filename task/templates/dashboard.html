@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<main class="container mt-4">
+  <h1 class="text-center">Dashboard de Predios</h1>
+
+  <div class="row">
+    <!-- Gráfica de torta generada en el backend -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">Estados de Folio de Matrícula</h5>
+          <img src="data:image/png;base64,{{ graphic }}" alt="Gráfica de estados" class="img-fluid">
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de trámites -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Últimos Trámites</h5>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Proyecto</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for predio in ultimos_predios %}
+              <tr>
+                <td>{{ predio.id }}</td>
+                <td>{{ predio.proyecto }}</td>
+                <td>{{ predio.estado_folio_matricula }}</td>
+                <td>
+                  <a href="{% url 'predio_detail' predio.id %}" class="btn btn-info btn-sm">Detalle</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% endblock %}

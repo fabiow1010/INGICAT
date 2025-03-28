@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="/">INGICAT {% if user.is_authenticated %} Bienvenido {{ user.username }} {% else %} S.A.S {% endif %}</a>
+    <a class="navbar-brand" href="/">{% if user.is_authenticated %} Bienvenido {{ user.username }} {% else %}INGICAT S.A.S {% endif %}</a>
     <button
       class="navbar-toggler"
       type="button"
@@ -19,26 +19,31 @@
         </li>
         {% if user.is_authenticated %}
         <li class="nav-item">
-          <a href="{% url 'tasks_completed' %}" class="nav-link"
+          <a href="{% url 'predio_completed' %}" class="nav-link"
             >complted tasks</a
           >
         </li>
         <li class="nav-item">
-          <a href="{% url 'tasks' %}" class="nav-link">Tasks</a>
+          <a href="{% url 'predios' %}" class="nav-link">Predios</a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'create_task' %}" class="nav-link">Create Task</a>
+          <a href="{% url 'create_predio' %}" class="nav-link">Crear Tramite</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/logout">Logout</a>
         </li>
         {% else %}
         <li class="nav-item">
+          <a href="{% url 'cliente_dashboard' %}" class="nav-link">Avances</a>
+        </li>
+        <li class="nav-item">
           <a href="/signin" class="nav-link">Login</a>
         </li>
+        {% if user.is_superuser %}
         <li class="nav-item">
           <a href="/signup" class="nav-link">Register</a>
         </li>
+        {% endif %}
         {% endif %}
       </ul>
     </div>

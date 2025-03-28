@@ -11,8 +11,14 @@
       incidunt.
     </p>
     <div class="text-center">
+      {% if user.is_authenticated %}
+      <a class="btn btn-primary" href="/create_predio/">Empezar</a> 
+      {%else %} 
       <a class="btn btn-primary" href="/signin/">Iniciar Sesión</a> 
-      <a class="btn btn-primary" href="/signup/">Registrarse</a> 
+      {% if user.is_superuser%}
+      <a class="btn btn-primary" href="/signup/">Registrarse</a>
+      {%endif%}
+      {%endif%}
     </div>
   </section>
 </main>

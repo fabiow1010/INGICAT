@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<main class="container card card-body">
+  <div class="row">
+    <h1>Listado de Predios</h1>
+
+    <!-- Tabla con encabezados -->
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Proyecto</th>
+          <th>Vigencia</th>
+          <th>Gerencia</th>
+          <th>Categoría Predio FMI</th>
+          <th>Estado Folio Matrícula</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for predio in predios %}
+        <tr {% if predio.is_importante %} class="table-danger" {% endif %}>
+          <td><a href="{% url 'predio_detail' predio.id %}">{{ predio.id }}</a></td>
+          <td>{{ predio.proyecto }}</td>
+          <td>{{ predio.vigencia }}</td>
+          <td>{{ predio.gerencia }}</td>
+          <td>{{ predio.categoria_predio_fmi }}</td>
+          <td>{{ predio.estado_folio_matricula }}</td>
+          <td>
+            <a href="{% url 'predio_detail' predio.id %}" class="btn btn-info btn-sm">
+              Ver
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+{% endblock %}

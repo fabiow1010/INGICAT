@@ -5,9 +5,15 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from .models import Task
+from .models import Predio
+from django.db.models import Count
+from datetime import date
+import matplotlib.pyplot as plt
+import io
+import base64
 
-from .forms import TaskForm
+
+from .forms import PredioForm
 
 # Create your views here.
 
@@ -23,7 +29,7 @@ def signup(request):
                     request.POST["username"], password=request.POST["password1"])
                 user.save()
                 login(request, user)
-                return redirect('tasks')
+                return redirect('predios')
             except IntegrityError:
                 return render(request, 'signup.html', {"form": UserCreationForm, "error": "Username already exists."})
 
@@ -31,29 +37,33 @@ def signup(request):
 
 
 @login_required
-def tasks(request):
-    tasks = Task.objects.filter(user=request.user, datecompleted__isnull=True)
-    return render(request, 'tasks.html', {"tasks": tasks})
-
-@login_required
-def tasks_completed(request):
-    tasks = Task.objects.filter(user=request.user, datecompleted__isnull=False).order_by('-datecompleted')
-    return render(request, 'tasks.html', {"tasks": tasks})
+def predios(request):
+    predios = Predio.objects.filter(user=request.user)
+    return render(request, 'predios.html', {"predios": predios})
 
 
 @login_required
-def create_task(request):
+def predio_completed(request):
+    predios = Predio.objects.filter(user=request.user, datecompleted__isnull=False).order_by('-datecompleted')
+    return render(request, 'predios.html', {"predios": predios})
+
+
+
+@login_required
+def create_predio(request):
     if request.method == "GET":
-        return render(request, 'create_task.html', {"form": TaskForm})
+        return render(request, 'create_predio.html', {"form": PredioForm()})
     else:
         try:
-            form = TaskForm(request.POST)
-            new_task = form.save(commit=False)
-            new_task.user = request.user
-            new_task.save()
-            return redirect('tasks')
+            form = PredioForm(request.POST)
+            new_predio = form.save(commit=False)
+            new_predio.user = request.user
+            new_predio.save()
+            return redirect('predios')
         except ValueError:
-            return render(request, 'create_task.html', {"form": TaskForm, "error": "Error creating task."})
+            return render(request, 'create_predio.html', {"form": PredioForm(), "error": "Error creando Támite."})
+
+
 
 
 def home(request):
@@ -72,38 +82,92 @@ def signin(request):
     else:
         user = authenticate(
             request, username=request.POST['username'], password=request.POST['password'])
+        
         if user is None:
-            return render(request, 'signin.html', {"form": AuthenticationForm, "error": "Username or password is incorrect."})
+            return render(request, 'signin.html', {
+                "form": AuthenticationForm, 
+                "error": "Username or password is incorrect."
+            })
 
         login(request, user)
-        return redirect('tasks')
+        return redirect('predios')
+    
+    
+    
+@login_required(login_url='signin')
+def predio_detail(request, predio_id):
+    predio = get_object_or_404(Predio, pk=predio_id)
 
-@login_required
-def task_detail(request, task_id):
     if request.method == 'GET':
-        task = get_object_or_404(Task, pk=task_id, user=request.user)
-        form = TaskForm(instance=task)
-        return render(request, 'task_detail.html', {'task': task, 'form': form})
+        predio_form = PredioForm(instance=predio)
+        return render(request, 'predio_detail.html', {'predio': predio, 'predio_form': predio_form})
+    
     else:
         try:
-            task = get_object_or_404(Task, pk=task_id, user=request.user)
-            form = TaskForm(request.POST, instance=task)
-            form.save()
-            return redirect('tasks')
+            predio_form = PredioForm(request.POST, instance=predio)
+            if predio_form.is_valid():
+                predio_form.save()
+                return redirect('predios')  
         except ValueError:
-            return render(request, 'task_detail.html', {'task': task, 'form': form, 'error': 'Error updating task.'})
+            return render(request, 'predio_detail.html', {
+                'predio': predio, 
+                'predio_form': predio_form, 
+                'error': 'Error al actualizar el predio.'
+            })
+
 
 @login_required
-def complete_task(request, task_id):
-    task = get_object_or_404(Task, pk=task_id, user=request.user)
+def complete_predio(request, predio_id):
+    predio = get_object_or_404(Predio, pk=predio_id, user=request.user)
     if request.method == 'POST':
-        task.datecompleted = timezone.now()
-        task.save()
-        return redirect('tasks')
+        predio.datecompleted = timezone.now()
+        predio.save()
+        return redirect('predios')
 
 @login_required
-def delete_task(request, task_id):
-    task = get_object_or_404(Task, pk=task_id, user=request.user)
+def delete_predio(request, predio_id):
+    predio = get_object_or_404(Predio, pk=predio_id, user=request.user)
     if request.method == 'POST':
-        task.delete()
-        return redirect('tasks')
+        predio.delete()
+        return redirect('predios')
+    
+
+def cliente_dashboard(request):
+    # Obtener datos de la gráfica
+    estado_counts = (
+        Predio.objects
+        .values('estado_folio_matricula')
+        .annotate(total=Count('estado_folio_matricula'))
+    )
+
+    # Datos para la gráfica
+    labels = [item['estado_folio_matricula'] for item in estado_counts]
+    sizes = [item['total'] for item in estado_counts]
+    colors = ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d']
+
+    # Crear la gráfica con Matplotlib
+    plt.figure(figsize=(6,6))
+    plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
+    plt.axis('equal')  # Para que el gráfico se vea como un círculo
+
+    # Guardar la gráfica en un objeto de memoria
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+
+    # Convertir la imagen a base64 para enviarla al template
+    graphic = base64.b64encode(image_png).decode('utf-8')
+
+    # Obtener los últimos 10 predios para la tabla
+    ultimos_predios = Predio.objects.all().order_by('-id')[:10]
+
+    context = {
+        'ultimos_predios': ultimos_predios,
+        'graphic': graphic,
+    }
+
+    return render(request, 'dashboard.html', context)
+
+
