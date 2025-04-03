@@ -46,6 +46,8 @@ class Predio(models.Model):
     fecha_solicitud = models.DateField(null=True , blank=True)
     fecha_respuesta = models.DateField(null=True , blank=True)
     datecompleted = models.DateTimeField(null=True, blank=True)
+    es_importante = models.BooleanField(default=False)
+    ultima_fecha_acceso = models.DateField(null=True, blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
@@ -53,6 +55,23 @@ class Predio(models.Model):
         blank=True, 
         related_name='predios'
     )
+    def actualizar_importancia(self, today=None):
+        """ Actualiza la importancia del predio basado en la diferencia de fechas. """
+        from django.utils import timezone
+
+        if today is None:
+            today = timezone.now().date()
+        
+        self.ultima_fecha_acceso = today  # Actualiza la última fecha de acceso
+
+        if self.fecha_solicitud and self.ultima_fecha_acceso:
+            dias_diferencia = (self.ultima_fecha_acceso - self.fecha_solicitud).days
+            self.es_importante = dias_diferencia > 8
+        else:
+            self.es_importante = False
+
+        self.save(update_fields=['ultima_fecha_acceso', 'es_importante'])  
+ 
 
     def __str__(self):
-      return f'{self.proyecto} - {self.gerencia} ({self.estado})'
+        return f'{self.proyecto} - {self.gerencia} ({self.fecha_solicitud})'

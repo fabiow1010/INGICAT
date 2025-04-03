@@ -17,7 +17,7 @@ from .forms import PredioForm
 
 # Create your views here.
 
-
+@login_required
 def signup(request):
     if request.method == 'GET':
         return render(request, 'signup.html', {"form": UserCreationForm})
@@ -90,6 +90,14 @@ def signin(request):
             })
 
         login(request, user)
+        today = timezone.now().date()
+        predios = Predio.objects.filter(user=user)
+        for predio in predios:
+            if predio.fecha_solicitud:
+                predio.ultima_fecha_acceso = today
+                predio.actualizar_importancia()
+                predio.save()
+                print(f"Total predios encontrados para {user.username}: {predios.count()}")
         return redirect('predios')
     
     
@@ -106,7 +114,16 @@ def predio_detail(request, predio_id):
         try:
             predio_form = PredioForm(request.POST, instance=predio)
             if predio_form.is_valid():
-                predio_form.save()
+                
+                # Guardar el valor original de la fecha_solicitud antes de actualizar
+                fecha_solicitud_original = predio.fecha_solicitud  
+
+                predio = predio_form.save(commit=False)  # No guardar aún
+                predio.fecha_solicitud = fecha_solicitud_original  # Restaurar el valor original
+                
+                predio.actualizar_importancia()
+                predio.save()  # Guardar finalmente
+
                 return redirect('predios')  
         except ValueError:
             return render(request, 'predio_detail.html', {

@@ -1,6 +1,7 @@
 from django import forms
 from .models import Task, Predio
- 
+from django.core.exceptions import ValidationError
+from django.utils import timezone  
 class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
@@ -43,6 +44,11 @@ class PredioForm(forms.ModelForm):
             'sub_estado_compra': forms.Select(attrs={'class': 'form-control'}),
             'envio_open_text': forms.Select(attrs={'class': 'form-control'}),
             'accion_tecnica': forms.Select(attrs={'class': 'form-control'}),
-            'fecha_solicitud': forms.SelectDateWidget(),
-            'fecha_respuesta': forms.SelectDateWidget()
+            'fecha_solicitud': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
+            'fecha_respuesta': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
+
         }
+        def clean_fecha_solicitud(self):
+            today = timezone.now().date()  # Usamos el método de Django para consistencia
+            if self.fecha_solicitud and self.fecha_solicitud > today:
+                raise ValidationError('La fecha de solicitud no puede ser posterior a la fecha actual.')

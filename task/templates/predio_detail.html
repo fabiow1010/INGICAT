@@ -15,12 +15,17 @@
         <div class="mb-3">
           <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
           {{ field }}
+          {% if field.errors %}
+          <div class="text-danger">
+            {{ field.errors }}
+          </div>
+          {% endif %}
         </div>
         {% endfor %}
 
         <button class="btn btn-primary mt-3">Actualizar</button>
       </form>
-      <div class="card card-body text-center">
+      <div class="card card-body text-center mt-4">
         <div class="d-flex justify-content-center gap-2 mt-3">
           <!-- Botón para completar predio -->
           <form action="{% url 'complete_predio' predio.id %}" method="POST">
