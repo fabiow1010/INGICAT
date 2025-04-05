@@ -39,8 +39,26 @@ def signup(request):
 @login_required
 def predios(request):
     predios = Predio.objects.filter(user=request.user)
-    return render(request, 'predios.html', {"predios": predios})
-
+    
+    # Obtener parámetros de filtro desde el request
+    importancia = request.GET.get('importancia')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    
+    # Filtrar por importancia si está especificado
+    if importancia == 'importante':
+        predios = predios.filter(es_importante=True)
+    elif importancia == 'normal':
+        predios = predios.filter(es_importante=False)
+    
+    # Filtrar por rango de fechas si están especificadas
+    if fecha_inicio:
+        predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
+    if fecha_fin:
+        predios = predios.filter(fecha_solicitud__lte=fecha_fin)
+    
+    context = {"predios": predios}
+    return render(request, 'predios.html', context)
 
 @login_required
 def predio_completed(request):
