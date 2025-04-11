@@ -8,7 +8,7 @@ class TaskAdmin(admin.ModelAdmin):
 # Configuración para Predio 
 class PredioAdmin(admin.ModelAdmin):
     list_display = ('proyecto', 'vigencia', 'gerencia', 'estado')  # Campos visibles en la lista
-    search_fields = ('proyecto', 'gerencia')  # Campos que se pueden buscar
+    search_fields = ('proyecto', 'gerencia','user')  # Campos que se pueden buscar
     list_filter = ('vigencia', 'estado')  # Filtros en la barra lateral
 
 # Registrar ambos modelos en el panel de administración

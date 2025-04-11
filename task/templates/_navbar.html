@@ -1,6 +1,12 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container">
-    <a class="navbar-brand" href="/">{% if user.is_authenticated %} Bienvenido {{ user.username }} {% else %}INGICAT S.A.S {% endif %}</a>
+    <a class="navbar-brand" href="/">
+      {% if user.is_authenticated %}
+      Bienvenido {{ user.username }}
+      {% else %}
+      INGICAT S.A.S
+      {% endif %}
+    </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
       aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -8,33 +14,40 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a href="/" class="nav-link">Home</a>
+          <a href="/" class="nav-link" title="Ir a la Pantalla de Inicio">Home</a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'cliente_dashboard' %}" class="nav-link">Avances</a>
+          <a href="{% url 'cliente_dashboard' %}" class="nav-link"
+            title="Ir al Resúmen de la Gestión Documental">Avances</a>
         </li>
         {% if user.is_authenticated %}
-          <li class="nav-item">
-            <a href="{% url 'predio_completed' %}" class="nav-link">Completed tasks</a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'predios' %}" class="nav-link">Predios</a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'create_predio' %}" class="nav-link">Crear Tramite</a>
-          </li>
-          {% if user.is_superuser %}
-          <li class="nav-item">
-            <a href="{% url 'signup' %}" class="nav-link">Register</a>
-          </li>
-          {% endif %}
-          <li class="nav-item">
-            <a class="nav-link" href="/logout">Logout</a>
-          </li>
+        <!-- Menú desplegable para Trámites -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="tramitesDropdown" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false" title="Trámites">
+            Trámites
+          </a>
+          <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="tramitesDropdown">
+            <li><a class="dropdown-item" href="{% url 'predio_completed' %}"
+                title="Gestión Documental Terminada">Completados</a></li>
+            <li><a class="dropdown-item" href="{% url 'predios' %}" title="Gestión Documental en Proceso">Trámites</a>
+            </li>
+            <li><a class="dropdown-item" href="{% url 'create_predio' %}"
+                title="Crear Nuevo Registro de Gestión Documental">Crear Trámite</a></li>
+          </ul>
+        </li>
+        {% if user.is_superuser %}
+        <li class="nav-item">
+          <a href="{% url 'signup' %}" class="nav-link" title="Registrar un Nuevo usuario">Registrar</a>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+          <a class="nav-link" href="/logout" title="Salir">Salir</a>
+        </li>
         {% else %}
-          <li class="nav-item">
-            <a href="/signin" class="nav-link">Login</a>
-          </li>
+        <li class="nav-item">
+          <a href="/signin" class="nav-link" title="Iniciar Sesión">Ingresar</a>
+        </li>
         {% endif %}
       </ul>
     </div>

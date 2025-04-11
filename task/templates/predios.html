@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<main class="container card card-body">
+<main class="container card card-body mt-5">
   <div class="row">
-    <h1>Listado de Predios</h1>
+    <h1>Listado de Trámites</h1>
 
     <!-- Formulario de Filtros -->
     <form method="GET" class="mb-4">
@@ -12,8 +12,8 @@
           <label for="importancia" class="form-label">Importancia</label>
           <select name="importancia" class="form-select">
             <option value="">Todos</option>
-            <option value="importante" {% if request.GET.importancia == 'importante' %}selected{% endif %}>Importantes</option>
-            <option value="normal" {% if request.GET.importancia == 'normal' %}selected{% endif %}>Normales</option>
+            <option value="importante" {% if request.GET.importancia == 'importante' %}selected{% endif %}>Importante</option>
+            <option value="normal" {% if request.GET.importancia == 'normal' %}selected{% endif %}>Normal</option>
           </select>
         </div>
         <div class="col-md-3">

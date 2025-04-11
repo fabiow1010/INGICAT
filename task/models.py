@@ -47,7 +47,22 @@ class Predio(models.Model):
     fecha_respuesta = models.DateField(null=True , blank=True)
     datecompleted = models.DateTimeField(null=True, blank=True)
     es_importante = models.BooleanField(default=False)
+    fecha_reiteracion = models.DateField(null=True, blank=True)
     ultima_fecha_acceso = models.DateField(null=True, blank=True)
+    campo=models.CharField(max_length=50, null=True , blank=True)
+    cod_sig = models.CharField(max_length=30, null=True , blank=True)
+    fmi = models.CharField(max_length=10, default="00000")
+    ced_catastral = models.CharField(max_length=31, null=True , blank=True)
+    nom_predio = models.CharField(max_length=50, default="Sin Informacion")
+    documento = models.CharField(max_length=15, null=True , blank=True)
+    fecha_documento= models.DateField(null=True , blank=True)
+    entidad = models.CharField(max_length=100, null=True , blank=True)
+    municipio = models.CharField(max_length=100,null=True , blank=True)
+    
+    
+    
+    
+      
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
@@ -75,3 +90,5 @@ class Predio(models.Model):
 
     def __str__(self):
         return f'{self.proyecto} - {self.gerencia} ({self.fecha_solicitud})'
+    class Meta:
+        ordering = ['-fecha_solicitud']  
