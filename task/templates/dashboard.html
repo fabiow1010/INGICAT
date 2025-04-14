@@ -1,50 +1,76 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<main class="container mt-4">
-  <h1 class="text-center">Dashboard de Predios</h1>
+<main class="container my-4">
+  <h2 class="text-center mb-5">Dashboard de Predios</h2>
 
-  <div class="row">
-    <!-- Gráfica de torta generada en el backend -->
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body text-center">
-          <h5 class="card-title">Estados de Folio de Matrícula</h5>
-          <img src="data:image/png;base64,{{ graphic }}" alt="Gráfica de estados" class="img-fluid">
-        </div>
-      </div>
+  <!-- Filtros -->
+  <form method="GET" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <label class="form-label">Campo</label>
+      <input type="text" name="campo" class="form-control" value="{{ campo }}">
     </div>
+    <div class="col-md-3">
+      <label class="form-label">FMI</label>
+      <input type="text" name="fmi" class="form-control" value="{{ fmi }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Proyecto</label>
+      <select name="proyecto" class="form-select" value="{{ proyecto }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Fecha Inicio</label>
+      <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Fecha Fin</label>
+      <input type="date" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+  </form>
 
-    <!-- Tabla de trámites -->
-    <div class="col-md-6">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Últimos Trámites</h5>
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Proyecto</th>
-                <th>Estado</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for predio in ultimos_predios %}
-              <tr>
-                <td>{{ predio.id }}</td>
-                <td>{{ predio.proyecto }}</td>
-                <td>{{ predio.estado_folio_matricula }}</td>
-                <td>
-                  <a href="{% url 'predio_detail' predio.id %}" class="btn btn-info btn-sm">Detalle</a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <!-- Gráficos -->
+  <div class="row text-center mb-5">
+    <div class="col-md-6 mb-4">
+      <h5>Estado del Folio de Matrícula</h5>
+      <img src="data:image/png;base64,{{ graphic }}" class="img-fluid rounded shadow" alt="Gráfico de estados">
     </div>
+    <div class="col-md-6 mb-4">
+      <h5>Distribución Temporal de Solicitudes</h5>
+      <img src="data:image/png;base64,{{ grafico_fechas }}" class="img-fluid rounded shadow" alt="Gráfico de fechas">
+    </div>
+  </div>
+
+  <!-- Tabla de predios -->
+  <div class="table-responsive">
+    <table class="table table-hover text-center align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Campo</th>
+          <th>Proyecto</th>
+          <th>FMI</th>
+          <th>Fecha Solicitud</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for predio in ultimos_predios %}
+        <tr>
+          <td>{{ predio.id }}</td>
+          <td>{{ predio.campo }}</td>
+          <td>{{ predio.proyecto }}</td>
+          <td>{{ predio.fmi }}</td>
+          <td>{{ predio.fecha_solicitud }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5">No se encontraron predios con los filtros aplicados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </main>
 

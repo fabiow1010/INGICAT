@@ -5,35 +5,137 @@
   <div class="row">
     <h1>Editar Predio</h1>
 
-    <section class="col-md-6 offset-md-3">
-      <!-- Formulario de actualización -->
+    <section class="col-md-10 offset-md-1">
       <form method="POST" class="card card-body mt-4">
-        <h3>Actualizar Información</h3>
+        <h3 class="mb-4">Actualizar Información</h3>
         {% csrf_token %}
 
-        {% for field in predio_form %}
-        <div class="mb-3">
-          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-          {{ field }}
-          {% if field.errors %}
-          <div class="text-danger">
-            {{ field.errors }}
-          </div>
-          {% endif %}
-        </div>
-        {% endfor %}
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs mb-3" id="predioTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#objeto" type="button">Objeto del Proyecto</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#folio" type="button">Datos Folio</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#juridico" type="button">Jurídico FMI</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#existencia" type="button">Validación Existencia</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#estado" type="button">Estado y Adquisición</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#seguimiento" type="button">Seguimiento</button>
+          </li>
+        </ul>
 
-        <button class="btn btn-primary mt-3">Actualizar</button>
+        <!-- Tab contents -->
+        <div class="tab-content" id="predioTabsContent">
+
+          <!-- Objeto del Proyecto -->
+          <div class="tab-pane fade show active" id="objeto" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in predios_objeto %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Datos Folio -->
+          <div class="tab-pane fade" id="folio" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in datos_folio %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Jurídico FMI -->
+          <div class="tab-pane fade" id="juridico" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in datos_juri_fmi %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Validación Existencia -->
+          <div class="tab-pane fade" id="existencia" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in validacion_existencia %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Estado y Adquisición -->
+          <div class="tab-pane fade" id="estado" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in estado_adquisicion %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Seguimiento -->
+          <div class="tab-pane fade" id="seguimiento" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in seguimiento %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <button class="btn btn-primary mt-4">Actualizar</button>
       </form>
+
+      <!-- Acciones adicionales -->
       <div class="card card-body text-center mt-4">
         <div class="d-flex justify-content-center gap-2 mt-3">
-          <!-- Botón para completar predio -->
           <form action="{% url 'complete_predio' predio.id %}" method="POST">
             {% csrf_token %}
             <button class="btn btn-success">Completar</button>
           </form>
-
-          <!-- Botón para eliminar predio -->
           <form action="{% url 'delete_predio' predio.id %}" method="POST">
             {% csrf_token %}
             <button class="btn btn-danger">Eliminar</button>

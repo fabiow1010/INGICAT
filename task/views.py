@@ -6,12 +6,11 @@ from django.db import IntegrityError
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from .models import Predio
-from django.db.models import Count
+from django.db.models import Count, Q
 from datetime import date
 import matplotlib.pyplot as plt
-import io
-import base64
-
+import io, base64
+import pandas as pd
 
 from .forms import PredioForm
 
@@ -69,18 +68,60 @@ def predio_completed(request):
 
 @login_required
 def create_predio(request):
+    # Listas de campos por sección
+    predios_objeto = ['proyecto', 'vigencia', 'gerencia', 'campo', 'cod_sig']
+    datos_folio = ['categoria_predio_fmi', 'fmi', 'estado_folio_matricula', 'ced_catastral']
+    datos_juri_fmi = [
+        'categoria_fmi', 'documento', 'fecha_documento', 'entidad', 'municipio',
+        'cod_especificacion'
+    ]
+    validacion_existencia = [
+        'nombre_predio_opentext', 'cod_sig_asociado', 'link_sharepoint',
+        'repetido', 'paquete'
+    ]
+    estado_adquisicion = [
+        'estado_compra', 'sub_estado_compra', 'fecha_solicitud',
+        'fecha_reiteracion', 'fecha_respuesta', 'fecha_pago', 'valor_pago',
+        'fecha_adquisicion', 'estrategia', 'responsable_adquisicion'
+    ]
+    seguimiento = [
+        'responsable_seguimiento', 'fecha_nueva_busqueda', 'responsable_nueva_busqueda'
+    ]
+
     if request.method == "GET":
-        return render(request, 'create_predio.html', {"form": PredioForm()})
+        form = PredioForm()
+        context = {
+            "predio_form": form,
+            "predios_objeto": predios_objeto,
+            "datos_folio": datos_folio,
+            "datos_juri_fmi": datos_juri_fmi,
+            "validacion_existencia": validacion_existencia,
+            "estado_adquisicion": estado_adquisicion,
+            "seguimiento": seguimiento
+        }
+        return render(request, 'create_predio.html', context)
     else:
         try:
             form = PredioForm(request.POST)
-            new_predio = form.save(commit=False)
-            new_predio.user = request.user
-            new_predio.save()
-            return redirect('predios')
+            if form.is_valid():
+                new_predio = form.save(commit=False)
+                new_predio.user = request.user
+                new_predio.save()
+                return redirect('predios')
+            else:
+                raise ValueError("Formulario inválido")
         except ValueError:
-            return render(request, 'create_predio.html', {"form": PredioForm(), "error": "Error creando Támite."})
-
+            context = {
+                "predio_form": form,
+                "error": "Error creando el Predio.",
+                "predios_objeto": predios_objeto,
+                "datos_folio": datos_folio,
+                "datos_juri_fmi": datos_juri_fmi,
+                "validacion_existencia": validacion_existencia,
+                "estado_adquisicion": estado_adquisicion,
+                "seguimiento": seguimiento
+            }
+            return render(request, 'create_predio.html', context)
 
 
 
@@ -124,31 +165,64 @@ def signin(request):
 def predio_detail(request, predio_id):
     predio = get_object_or_404(Predio, pk=predio_id)
 
+    # Listas de campos por sección
+    predios_objeto=['proyecto', 'vigencia', 'gerencia', 'campo','cod_sig']
+    datos_folio = ['categoria_predio_fmi','fmi','estado_folio_matricula', 'ced_catastral']
+    datos_juri_fmi = [
+        'categoria_fmi','documento','fecha_documento','entidad','municipio',
+        'cod_especificacion'
+        ]
+    validacion_exisencia=[
+        'nombre_predio_opentext','cod_sig_asociado','link_sharepoint',
+        'repetido', 'paquete']
+    estado_adquisicion=[
+        'estado_compra','sub_estado_compra','fecha_solicitud',
+        'fecha_reiteracion','fecha_respuesta','fecha_pago','valor_pago','fecha_adquisicion',
+        'estrategia','fecha_reiteracion','responsable_adquisicion'
+        ]
+    seguimiento = [
+        'responsable_seguimiento','fecha_nueva_busqueda','responsable_nueva_busqueda',
+        
+    ]
     if request.method == 'GET':
         predio_form = PredioForm(instance=predio)
-        return render(request, 'predio_detail.html', {'predio': predio, 'predio_form': predio_form})
+        context = {
+            'predio': predio,
+            'predio_form': predio_form,
+            'predios_objeto': predios_objeto,
+            'datos_folio': datos_folio,
+            'seguimiento': seguimiento,
+            'estado_adquisicion': estado_adquisicion,
+            'validacion_existencia': validacion_exisencia,
+            'datos_juri_fmi':datos_juri_fmi
+        }
+        return render(request, 'predio_detail.html', context)
     
     else:
         try:
             predio_form = PredioForm(request.POST, instance=predio)
             if predio_form.is_valid():
-                
-                # Guardar el valor original de la fecha_solicitud antes de actualizar
-                fecha_solicitud_original = predio.fecha_solicitud  
-
-                predio = predio_form.save(commit=False)  # No guardar aún
-                predio.fecha_solicitud = fecha_solicitud_original  # Restaurar el valor original
-                
+                fecha_solicitud_original = predio.fecha_solicitud
+                predio = predio_form.save(commit=False)
+                predio.fecha_solicitud = fecha_solicitud_original
                 predio.actualizar_importancia()
-                predio.save()  # Guardar finalmente
+                predio.save()
 
-                return redirect('predios')  
+                return redirect('predios')
+
         except ValueError:
-            return render(request, 'predio_detail.html', {
-                'predio': predio, 
-                'predio_form': predio_form, 
-                'error': 'Error al actualizar el predio.'
-            })
+            context = {
+            'predio': predio,
+            'predio_form': predio_form,
+            'predios_objeto': predios_objeto,
+            'datos_folio': datos_folio,
+            'seguimiento': seguimiento,
+            'estado_adquisicion': estado_adquisicion,
+            'validacion_existencia': validacion_exisencia,
+            'datos_juri_fmi':datos_juri_fmi
+            }
+            return render(request, 'predio_detail.html', context)
+
 
 
 @login_required
@@ -168,41 +242,78 @@ def delete_predio(request, predio_id):
     
 
 def cliente_dashboard(request):
-    # Obtener datos de la gráfica
+    # Filtros
+    campo = request.GET.get('campo', '')
+    fmi = request.GET.get('fmi', '')
+    proyecto = request.GET.get('proyecto', '')
+    fecha_inicio = request.GET.get('fecha_inicio', '')
+    fecha_fin = request.GET.get('fecha_fin', '')
+
+    predios = Predio.objects.all()
+
+    if campo:
+        predios = predios.filter(campo__icontains=campo)
+    if fmi:
+        predios = predios.filter(fmi__icontains=fmi)
+    if proyecto:
+        predios = predios.filter(proyecto=proyecto)
+    if fecha_inicio:
+        predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
+    if fecha_fin:
+        predios = predios.filter(fecha_solicitud__lte=fecha_fin)
+
+    # Gráfico de pastel: estado folio matrícula
     estado_counts = (
-        Predio.objects
+        predios
         .values('estado_folio_matricula')
         .annotate(total=Count('estado_folio_matricula'))
     )
-
-    # Datos para la gráfica
-    labels = [item['estado_folio_matricula'] for item in estado_counts]
+    labels = [item['estado_folio_matricula'] or 'Sin estado' for item in estado_counts]
     sizes = [item['total'] for item in estado_counts]
     colors = ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d']
 
-    # Crear la gráfica con Matplotlib
-    plt.figure(figsize=(6,6))
-    plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
-    plt.axis('equal')  # Para que el gráfico se vea como un círculo
-
-    # Guardar la gráfica en un objeto de memoria
+    plt.figure(figsize=(6, 6))
+    plt.pie(sizes, labels=labels, colors=colors[:len(labels)], autopct='%1.1f%%', startangle=90)
+    plt.axis('equal')
     buffer = io.BytesIO()
     plt.savefig(buffer, format='png')
     buffer.seek(0)
-    image_png = buffer.getvalue()
+    graphic = base64.b64encode(buffer.getvalue()).decode()
     buffer.close()
+    plt.clf()
 
-    # Convertir la imagen a base64 para enviarla al template
-    graphic = base64.b64encode(image_png).decode('utf-8')
+    # Gráfico temporal: solicitudes por fecha
+    fechas_df = pd.DataFrame(predios.values('fecha_solicitud'))
+    fechas_df = fechas_df.dropna()
+    fechas_df['fecha_solicitud'] = pd.to_datetime(fechas_df['fecha_solicitud'])
+    conteo_fechas = fechas_df['fecha_solicitud'].value_counts().sort_index()
 
-    # Obtener los últimos 10 predios para la tabla
-    ultimos_predios = Predio.objects.all().order_by('-id')[:10]
+    plt.figure(figsize=(8, 4))
+    conteo_fechas.plot(kind='bar', color='#17a2b8')
+    plt.title('Solicitudes por Fecha')
+    plt.xlabel('Fecha')
+    plt.ylabel('Cantidad')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    buffer2 = io.BytesIO()
+    plt.savefig(buffer2, format='png')
+    buffer2.seek(0)
+    grafico_fechas = base64.b64encode(buffer2.getvalue()).decode()
+    buffer2.close()
+    plt.clf()
+
+    # Últimos predios
+    ultimos_predios = predios.order_by('-id')[:10]
 
     context = {
-        'ultimos_predios': ultimos_predios,
         'graphic': graphic,
+        'grafico_fechas': grafico_fechas,
+        'ultimos_predios': ultimos_predios,
+        'campo': campo,
+        'fmi': fmi,
+        'proyecto': proyecto,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
     }
 
     return render(request, 'dashboard.html', context)
-
-

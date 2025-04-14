@@ -30,6 +30,9 @@ class Predio(models.Model):
     SUB_ESTADO_COMPRA_CHOICES = [('ADQUIRIDO PREDIO PROPIOS', 'ADQUIRIDO PREDIO PROPIOS'), ('ADQUIRIDO SERVIDUMBRES', 'ADQUIRIDO SERVIDUMBRES'), ('ERROR REGISTRAL', 'ERROR REGISTRAL'), ('NO APLICA', 'NO APLICA'), ('SOLICITADO / CERTIFICADO NO EXISTE', 'SOLICITADO / CERTIFICADO NO EXISTE'), ('SOLICITADO PREDIO PROPIOS', 'SOLICITADO PREDIO PROPIOS'), ('SOLICITADO SERVIDUMBRES', 'SOLICITADO SERVIDUMBRES')]
     ENVIO_OPEN_TEXT_CHOICES = [('NO', 'NO'), ('NO APLICA', 'NO APLICA'), ('NO REQUIERE', 'NO REQUIERE'), ('PENDIENTE', 'PENDIENTE'), ('SI', 'SI'), ('YA ESTA', 'YA ESTA')]
     ACCION_TECNICA_CHOICES = [('ALIMENTAR EXPEDIENTE PREDIAL', 'ALIMENTAR EXPEDIENTE PREDIAL'), ('ALIMENTAR PREDIO GESTIÓN', 'ALIMENTAR PREDIO GESTIÓN'), ('ALIMENTAR PREDIO MATRIZ', 'ALIMENTAR PREDIO MATRIZ'), ('CARPETA CERO', 'CARPETA CERO'), ('CREAR EXPEDIENTE', 'CREAR EXPEDIENTE'), ('NO REQUIERE', 'NO REQUIERE')]
+    REPETIDO_CHOISES =[('REPETIDO','REPETIDO'),('UNICO','UNICO'),('REPETIDO ADQUIRIR','REPETIDO ADQUIRIR'),('NO APLICA','NO APLICA')]
+    PAQUETE_CHOISES = [('PAQUETE 4','PAQUETE 4'),('PAQUETE 6','PAQUETE 6'),('SIN PAQUETE','SIN PAQUETE')]
+    ESTRATEGIA_CHOISES = [('EMAIL','EMAIL'),('APOYO FISICO','APOYO FISICO'),('NO APLICA','NO APLICA')]
 
     proyecto = models.CharField(max_length=16, choices=PROYECTO_CHOICES)
     vigencia = models.CharField(max_length=4, choices=VIGENCIA_CHOICES)
@@ -58,6 +61,23 @@ class Predio(models.Model):
     fecha_documento= models.DateField(null=True , blank=True)
     entidad = models.CharField(max_length=100, null=True , blank=True)
     municipio = models.CharField(max_length=100,null=True , blank=True)
+    documentos_municipio = models.CharField(max_length=150,null=True , blank=True)
+    nombre_predio_opentext = models.CharField(max_length=150,null=True , blank=True)
+    cod_sig_opentext = models.CharField(max_length=30,null=True , blank=True)
+    cod_sig_asociado = models.CharField(max_length=30,null=True , blank=True)
+    fecha_pago = models.DateField(null=True , blank=True)
+    valor_pago = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    fecha_adquisicion = models.DateField(null=True, blank=True)
+    estrategia = models.CharField(max_length=50, choices=ESTRATEGIA_CHOISES, default='NO APLICA')
+    responsable_adquisicion = models.CharField(max_length=50,null=True , blank=True)
+    link_sharepoint = models.CharField(null=True , blank=True)
+    responsable_seguimiento = models.CharField(max_length=50,null=True , blank=True)
+    fecha_nueva_busqueda = models.DateField(null=True , blank=True)
+    responsable_nueva_busqueda = models.CharField(max_length=50,null=True , blank=True)
+    cod_especificacion= models.IntegerField(null=True , blank=True)
+    adquirir = models.BooleanField(default=True)
+    repetido = models.CharField(max_length=50,choices=REPETIDO_CHOISES, default='NO APLICA')
+    paquete = models.CharField(max_length=30, choices=PAQUETE_CHOISES, default='PAQUETE 4')
     
     
     

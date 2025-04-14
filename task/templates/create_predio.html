@@ -3,20 +3,137 @@
 
 <main class="container">
   <div class="row">
-    <div class="col-md-6 offset-md-3 mt-5">
-      <form action="{% url 'create_predio' %}" method="POST" class="card card-body">
-        <h1>Registrar Predio</h1>
+    <h1>Crear Predio</h1>
+
+    <section class="col-md-10 offset-md-1">
+      <form method="POST" class="card card-body mt-4">
+        <h3 class="mb-4">Nuevo Registro</h3>
         {% csrf_token %}
 
-        {% if error %}
-          <p class="alert alert-danger">{{ error }}</p>
-        {% endif %}
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs mb-3" id="predioTabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#objeto" type="button">Objeto del Proyecto</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#folio" type="button">Datos Folio</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#juridico" type="button">Jurídico FMI</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#existencia" type="button">Validación Existencia</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#estado" type="button">Estado y Adquisición</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#seguimiento" type="button">Seguimiento</button>
+          </li>
+        </ul>
 
-        {{ form.as_p }}  <!-- Muestra los campos del formulario -->
+        <!-- Tab contents -->
+        <div class="tab-content" id="predioTabsContent">
 
-        <button class="btn btn-primary mt-3">Registrar Predio</button>
+          <!-- Objeto del Proyecto -->
+          <div class="tab-pane fade show active" id="objeto" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in predios_objeto %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Datos Folio -->
+          <div class="tab-pane fade" id="folio" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in datos_folio %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Jurídico FMI -->
+          <div class="tab-pane fade" id="juridico" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in datos_juri_fmi %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Validación Existencia -->
+          <div class="tab-pane fade" id="existencia" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in validacion_existencia %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Estado y Adquisición -->
+          <div class="tab-pane fade" id="estado" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in estado_adquisicion %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Seguimiento -->
+          <div class="tab-pane fade" id="seguimiento" role="tabpanel">
+            {% for field in predio_form %}
+              {% if field.name in seguimiento %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+
+        <button class="btn btn-primary mt-4">Crear</button>
       </form>
-    </div>
+
+      {% if error %}
+        <div class="alert alert-danger mt-4">{{ error }}</div>
+      {% endif %}
+
+    </section>
   </div>
 </main>
 
