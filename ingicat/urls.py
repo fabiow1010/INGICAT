@@ -31,4 +31,5 @@ urlpatterns = [
     path('predio/<int:predio_id>/complete', views.complete_predio, name='complete_predio'),
     path('predio/<int:predio_id>/delete', views.delete_predio, name='delete_predio'),
     path('dashboard/', views.cliente_dashboard, name='cliente_dashboard'),
+    
 ]

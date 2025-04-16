@@ -1,140 +1,91 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block content %}
+<section class="col-md-10 offset-md-1">
+  <form method="POST" class="card card-body mt-4">
+    {% csrf_token %}
 
-<main class="container">
-  <div class="row">
-    <h1>Crear Predio</h1>
+    <h2 class="mb-4">Crear registro</h2>
 
-    <section class="col-md-10 offset-md-1">
-      <form method="POST" class="card card-body mt-4">
-        <h3 class="mb-4">Nuevo Registro</h3>
-        {% csrf_token %}
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
 
-        <!-- Nav tabs -->
-        <ul class="nav nav-tabs mb-3" id="predioTabs" role="tablist">
-          <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#objeto" type="button">Objeto del Proyecto</button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#folio" type="button">Datos Folio</button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#juridico" type="button">Jurídico FMI</button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#existencia" type="button">Validación Existencia</button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#estado" type="button">Estado y Adquisición</button>
-          </li>
-          <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#seguimiento" type="button">Seguimiento</button>
-          </li>
-        </ul>
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item"><a class="nav-link active" href="#objeto" data-bs-toggle="tab"  type="button">Predios Objeto</a></li>
+      <li class="nav-item"><a class="nav-link" href="#folio" data-bs-toggle="tab"  type="button">Datos Folio</a></li>
+      <li class="nav-item"><a class="nav-link" href="#juri" data-bs-toggle="tab"  type="button">Datos Jurídicos FMI</a></li>
+      <li class="nav-item"><a class="nav-link" href="#validacion" data-bs-toggle="tab"  type="button">Validación Existencia</a></li>
+      <li class="nav-item"><a class="nav-link" href="#estado" data-bs-toggle="tab"  type="button">Estado Adquisición</a></li>
+      <li class="nav-item"><a class="nav-link" href="#seguimiento" data-bs-toggle="tab"  type="button">Seguimiento</a></li>
+    </ul>
 
-        <!-- Tab contents -->
-        <div class="tab-content" id="predioTabsContent">
-
-          <!-- Objeto del Proyecto -->
-          <div class="tab-pane fade show active" id="objeto" role="tabpanel">
-            {% for field in predio_form %}
-              {% if field.name in predios_objeto %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endfor %}
+    <div class="tab-content p-3 border border-top-0">
+      <div class="tab-pane fade show active" id="objeto">
+        {% for field in form_objeto %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
           </div>
+        {% endfor %}
+      </div>
 
-          <!-- Datos Folio -->
-          <div class="tab-pane fade" id="folio" role="tabpanel">
-            {% for field in predio_form %}
-              {% if field.name in datos_folio %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endfor %}
+      <div class="tab-pane fade" id="folio">
+        {% for field in form_folio %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
           </div>
+        {% endfor %}
+      </div>
 
-          <!-- Jurídico FMI -->
-          <div class="tab-pane fade" id="juridico" role="tabpanel">
-            {% for field in predio_form %}
-              {% if field.name in datos_juri_fmi %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endfor %}
+      <div class="tab-pane fade" id="juri">
+        {% for field in form_juri %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
           </div>
+        {% endfor %}
+      </div>
 
-          <!-- Validación Existencia -->
-          <div class="tab-pane fade" id="existencia" role="tabpanel">
-            {% for field in predio_form %}
-              {% if field.name in validacion_existencia %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endfor %}
+      <div class="tab-pane fade" id="validacion">
+        {% for field in form_validacion %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
           </div>
+        {% endfor %}
+      </div>
 
-          <!-- Estado y Adquisición -->
-          <div class="tab-pane fade" id="estado" role="tabpanel">
-            {% for field in predio_form %}
-              {% if field.name in estado_adquisicion %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endfor %}
+      <div class="tab-pane fade" id="estado">
+        {% for field in form_estado %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
           </div>
+        {% endfor %}
+      </div>
 
-          <!-- Seguimiento -->
-          <div class="tab-pane fade" id="seguimiento" role="tabpanel">
-            {% for field in predio_form %}
-              {% if field.name in seguimiento %}
-                <div class="mb-3">
-                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.errors %}
-                    <div class="text-danger">{{ field.errors }}</div>
-                  {% endif %}
-                </div>
-              {% endif %}
-            {% endfor %}
+      <div class="tab-pane fade" id="seguimiento">
+        {% for field in form_seguimiento %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="text-danger">{{ field.errors }}</div>{% endif %}
           </div>
-        </div>
+        {% endfor %}
+      </div>
+    </div>
 
-        <button class="btn btn-primary mt-4">Crear</button>
-      </form>
-
-      {% if error %}
-        <div class="alert alert-danger mt-4">{{ error }}</div>
-      {% endif %}
-
-    </section>
-  </div>
-</main>
-
+    <div class="mt-4">
+      <button type="submit" class="btn btn-success">Guardar cambios</button>
+      <a href="{% url 'predios' %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+</section>
 {% endblock %}

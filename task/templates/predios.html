@@ -12,7 +12,7 @@
           <label for="importancia" class="form-label">Importancia</label>
           <select name="importancia" class="form-select">
             <option value="">Todos</option>
-            <option value="importante" {% if request.GET.importancia == 'importante' %}selected{% endif %}>Importante</option>
+            <option value="importante" {% if request.GET.importancia == 'importante' %}selected{% endif %}>Prioridad</option>
             <option value="normal" {% if request.GET.importancia == 'normal' %}selected{% endif %}>Normal</option>
           </select>
         </div>
@@ -42,7 +42,7 @@
             <th>Gerencia</th>
             <th>Categoría Predio FMI</th>
             <th>Estado Folio Matrícula</th>
-            <th>Importante</th>
+            <th>Prioridad</th>
             <th>Acción</th>
           </tr>
         </thead>
@@ -57,7 +57,7 @@
             <td>{{ predio.estado_folio_matricula }}</td>
             <td>
               {% if predio.es_importante %}
-                <span class="badge bg-danger">¡Importante!</span>
+                <span class="badge bg-danger">¡Prioridad!</span>
               {% else %}
                 <span class="badge bg-success">Normal</span>
               {% endif %}

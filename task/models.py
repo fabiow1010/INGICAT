@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from datetime import date
 from django.utils.timezone import now
-
+from django.utils import timezone
 # Create your models here.
 class Task(models.Model):
   title = models.CharField(max_length=200)
@@ -90,25 +90,20 @@ class Predio(models.Model):
         blank=True, 
         related_name='predios'
     )
-    def actualizar_importancia(self, today=None):
-        """ Actualiza la importancia del predio basado en la diferencia de fechas. """
-        from django.utils import timezone
+    def save(self, *args, **kwargs):
+        if not self.ultima_fecha_acceso:
+            self.ultima_fecha_acceso = timezone.now().date()
 
-        if today is None:
-            today = timezone.now().date()
-        
-        self.ultima_fecha_acceso = today  # Actualiza la última fecha de acceso
-
-        if self.fecha_solicitud and self.ultima_fecha_acceso:
+        if self.fecha_solicitud:
             dias_diferencia = (self.ultima_fecha_acceso - self.fecha_solicitud).days
             self.es_importante = dias_diferencia > 8
         else:
             self.es_importante = False
 
-        self.save(update_fields=['ultima_fecha_acceso', 'es_importante'])  
- 
+        super().save(*args, **kwargs)  # Llama al método original para guardar
 
     def __str__(self):
         return f'{self.proyecto} - {self.gerencia} ({self.fecha_solicitud})'
+    
     class Meta:
-        ordering = ['-fecha_solicitud']  
+        ordering = ['-fecha_solicitud']

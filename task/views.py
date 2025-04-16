@@ -11,8 +11,10 @@ from datetime import date
 import matplotlib.pyplot as plt
 import io, base64
 import pandas as pd
-
-from .forms import PredioForm
+from django.contrib import messages
+from django.views.decorators.csrf import csrf_protect
+from .forms import (PredioForm,PrediosObjetoForm, DatosFolioForm, DatosJuriFMIForm,
+    ValidacionExistenciaForm, EstadoAdquisicionForm, SeguimientoForm)
 
 # Create your views here.
 
@@ -66,62 +68,75 @@ def predio_completed(request):
 
 
 
-@login_required
+@login_required(login_url='signin')
 def create_predio(request):
-    # Listas de campos por sección
-    predios_objeto = ['proyecto', 'vigencia', 'gerencia', 'campo', 'cod_sig']
-    datos_folio = ['categoria_predio_fmi', 'fmi', 'estado_folio_matricula', 'ced_catastral']
-    datos_juri_fmi = [
-        'categoria_fmi', 'documento', 'fecha_documento', 'entidad', 'municipio',
-        'cod_especificacion'
-    ]
-    validacion_existencia = [
-        'nombre_predio_opentext', 'cod_sig_asociado', 'link_sharepoint',
-        'repetido', 'paquete'
-    ]
-    estado_adquisicion = [
-        'estado_compra', 'sub_estado_compra', 'fecha_solicitud',
-        'fecha_reiteracion', 'fecha_respuesta', 'fecha_pago', 'valor_pago',
-        'fecha_adquisicion', 'estrategia', 'responsable_adquisicion'
-    ]
-    seguimiento = [
-        'responsable_seguimiento', 'fecha_nueva_busqueda', 'responsable_nueva_busqueda'
-    ]
+    if request.method == "POST":
+        # Crear formularios por secciones
+        forms = [
+            PrediosObjetoForm(request.POST, prefix='objeto'),
+            DatosFolioForm(request.POST, prefix='folio'),
+            DatosJuriFMIForm(request.POST, prefix='juri'),
+            ValidacionExistenciaForm(request.POST, prefix='validacion'),
+            EstadoAdquisicionForm(request.POST, prefix='estado'),
+            SeguimientoForm(request.POST, prefix='seguimiento')
+        ]
 
-    if request.method == "GET":
-        form = PredioForm()
-        context = {
-            "predio_form": form,
-            "predios_objeto": predios_objeto,
-            "datos_folio": datos_folio,
-            "datos_juri_fmi": datos_juri_fmi,
-            "validacion_existencia": validacion_existencia,
-            "estado_adquisicion": estado_adquisicion,
-            "seguimiento": seguimiento
-        }
-        return render(request, 'create_predio.html', context)
-    else:
-        try:
-            form = PredioForm(request.POST)
-            if form.is_valid():
-                new_predio = form.save(commit=False)
-                new_predio.user = request.user
-                new_predio.save()
-                return redirect('predios')
-            else:
-                raise ValueError("Formulario inválido")
-        except ValueError:
+        # Validar si todos los formularios son válidos
+        if all(f.is_valid() for f in forms):
+            try:
+                # Guardar el nuevo predio
+                new_predio = forms[0].save(commit=False)  # Usamos el primer formulario para el objeto predio
+                new_predio.user = request.user  # Asignamos el usuario
+                new_predio.save()  # Guardamos el objeto predio
+                
+                # Guardamos las demás secciones
+                for form in forms:
+                    form.instance = new_predio  # Aseguramos que cada formulario esté vinculado al nuevo predio
+                    form.save()
+
+                # Mensaje de éxito
+                messages.success(request, "Predio creado con éxito.")
+                return redirect('predios')  
+            except Exception as e:
+                # En caso de cualquier error inesperado
+                print(e)
+                messages.error(request, f"Error al crear el Predio: {str(e)}")
+                return redirect('create_predio')  # Redirigir a la misma página si hay error
+        else:
+            # En caso de que alguno de los formularios no sea válido
+            print([form.errors for form in forms])  # Para depurar errores
+            messages.error(request, "Formulario inválido. Por favor, revisa los campos.")
             context = {
-                "predio_form": form,
-                "error": "Error creando el Predio.",
-                "predios_objeto": predios_objeto,
-                "datos_folio": datos_folio,
-                "datos_juri_fmi": datos_juri_fmi,
-                "validacion_existencia": validacion_existencia,
-                "estado_adquisicion": estado_adquisicion,
-                "seguimiento": seguimiento
+                "form_objeto": forms[0],  # Mostrar el primer formulario en caso de error
+                "form_folio": forms[1],
+                "form_juri": forms[2],
+                "form_validacion": forms[3],
+                "form_estado": forms[4],
+                "form_seguimiento": forms[5]
             }
             return render(request, 'create_predio.html', context)
+    
+    else:
+        # Si es GET, inicializamos los formularios vacíos
+        forms = [
+            PrediosObjetoForm(prefix='objeto'),
+            DatosFolioForm(prefix='folio'),
+            DatosJuriFMIForm(prefix='juri'),
+            ValidacionExistenciaForm(prefix='validacion'),
+            EstadoAdquisicionForm(prefix='estado'),
+            SeguimientoForm(prefix='seguimiento')
+        ]
+
+        context = {
+            "form_objeto": forms[0],
+            "form_folio": forms[1],
+            "form_juri": forms[2],
+            "form_validacion": forms[3],
+            "form_estado": forms[4],
+            "form_seguimiento": forms[5]
+        }
+
+        return render(request, 'create_predio.html', context)
 
 
 
@@ -159,70 +174,50 @@ def signin(request):
                 print(f"Total predios encontrados para {user.username}: {predios.count()}")
         return redirect('predios')
     
-    
-    
+
+
 @login_required(login_url='signin')
 def predio_detail(request, predio_id):
     predio = get_object_or_404(Predio, pk=predio_id)
 
-    # Listas de campos por sección
-    predios_objeto=['proyecto', 'vigencia', 'gerencia', 'campo','cod_sig']
-    datos_folio = ['categoria_predio_fmi','fmi','estado_folio_matricula', 'ced_catastral']
-    datos_juri_fmi = [
-        'categoria_fmi','documento','fecha_documento','entidad','municipio',
-        'cod_especificacion'
+    if request.method == 'POST':
+        forms = [
+            PrediosObjetoForm(request.POST, instance=predio, prefix='objeto'),
+            DatosFolioForm(request.POST, instance=predio, prefix='folio'),
+            DatosJuriFMIForm(request.POST, instance=predio, prefix='juri'),
+            ValidacionExistenciaForm(request.POST, instance=predio, prefix='validacion'),
+            EstadoAdquisicionForm(request.POST, instance=predio, prefix='estado'),
+            SeguimientoForm(request.POST, instance=predio, prefix='seguimiento')
         ]
-    validacion_exisencia=[
-        'nombre_predio_opentext','cod_sig_asociado','link_sharepoint',
-        'repetido', 'paquete']
-    estado_adquisicion=[
-        'estado_compra','sub_estado_compra','fecha_solicitud',
-        'fecha_reiteracion','fecha_respuesta','fecha_pago','valor_pago','fecha_adquisicion',
-        'estrategia','fecha_reiteracion','responsable_adquisicion'
-        ]
-    seguimiento = [
-        'responsable_seguimiento','fecha_nueva_busqueda','responsable_nueva_busqueda',
-        
-    ]
-    if request.method == 'GET':
-        predio_form = PredioForm(instance=predio)
-        context = {
-            'predio': predio,
-            'predio_form': predio_form,
-            'predios_objeto': predios_objeto,
-            'datos_folio': datos_folio,
-            'seguimiento': seguimiento,
-            'estado_adquisicion': estado_adquisicion,
-            'validacion_existencia': validacion_exisencia,
-            'datos_juri_fmi':datos_juri_fmi
-        }
-        return render(request, 'predio_detail.html', context)
-    
+
+        if all(f.is_valid() for f in forms):
+            for form in forms:
+                form.save()
+            return redirect('predios')
+        else:
+            context = {'error': 'Error al actualizar el predio.'}
     else:
-        try:
-            predio_form = PredioForm(request.POST, instance=predio)
-            if predio_form.is_valid():
-                fecha_solicitud_original = predio.fecha_solicitud
-                predio = predio_form.save(commit=False)
-                predio.fecha_solicitud = fecha_solicitud_original
-                predio.actualizar_importancia()
-                predio.save()
+        forms = [
+            PrediosObjetoForm(instance=predio, prefix='objeto'),
+            DatosFolioForm(instance=predio, prefix='folio'),
+            DatosJuriFMIForm(instance=predio, prefix='juri'),
+            ValidacionExistenciaForm(instance=predio, prefix='validacion'),
+            EstadoAdquisicionForm(instance=predio, prefix='estado'),
+            SeguimientoForm(instance=predio, prefix='seguimiento')
+        ]
+        context = {}
 
-                return redirect('predios')
+    context.update({
+        'predio': predio,
+        'form_objeto': forms[0],
+        'form_folio': forms[1],
+        'form_juri': forms[2],
+        'form_validacion': forms[3],
+        'form_estado': forms[4],
+        'form_seguimiento': forms[5]
+    })
 
-        except ValueError:
-            context = {
-            'predio': predio,
-            'predio_form': predio_form,
-            'predios_objeto': predios_objeto,
-            'datos_folio': datos_folio,
-            'seguimiento': seguimiento,
-            'estado_adquisicion': estado_adquisicion,
-            'validacion_existencia': validacion_exisencia,
-            'datos_juri_fmi':datos_juri_fmi
-            }
-            return render(request, 'predio_detail.html', context)
-
+    return render(request, 'predio_detail.html', context)
 
 
 @login_required
@@ -239,6 +234,7 @@ def delete_predio(request, predio_id):
     if request.method == 'POST':
         predio.delete()
         return redirect('predios')
+    return redirect('predio_detail', predio_id=predio_id)
     
 
 def cliente_dashboard(request):
