@@ -1,6 +1,7 @@
-venv/
+myvenv/
 db.sqlite3
 __pycache__/
+*/migrations/
 *.pyc
 *.log
-.env
+.myvenv

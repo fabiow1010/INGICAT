@@ -26,7 +26,13 @@ SECRET_KEY = 'django-insecure-c0hrt(vc^e+@l=s41o%(mvqd$ov0$_wr2@_@kk*l3(5d0&g=uy
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
+# CRSF PERMISSON
+CSRF_TRUSTED_ORIGINS = [
+    'https://usually-optimum-marlin.ngrok-free.app',
+    'http://usually-optimum-marlin.ngrok-free.app',  
+]
 
 
 # Application definition
@@ -121,6 +127,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# Define la carpeta donde se guardarán los archivos estáticos recopilados
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

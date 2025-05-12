@@ -1,16 +1,7 @@
 from django import forms
-from .models import Task, Predio
+from .models import Predio
 from django.core.exceptions import ValidationError
 from django.utils import timezone  
-class TaskForm(forms.ModelForm):
-    class Meta:
-        model = Task
-        fields = ['title', 'description', 'important']
-        widgets = {
-            'title': forms.TextInput(attrs={'class':'form-control','placeholder':'Ingresa el titulo'}),
-            'description': forms.Textarea(attrs={'class':'form-control','placeholder':'Ingresa la descripccion de la tarea'}),
-            'important': forms.CheckboxInput(attrs={'class':'form-check-input m-auto mt-2 md-4'}),
-        }       
 
 class PredioForm(forms.ModelForm):
     class Meta:
@@ -150,3 +141,13 @@ class SeguimientoForm(forms.ModelForm):
             'fecha_nueva_busqueda': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}, format='%Y-%m-%d'),
             'responsable_nueva_busqueda': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+class ConsultaNaturalForm(forms.Form):
+    consulta_natural = forms.CharField(
+        label='Consulta en lenguaje natural',
+        max_length=500,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Ej. Predios en Antioquia adquiridos después de 2021'
+        })
+    )

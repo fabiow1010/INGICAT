@@ -6,9 +6,9 @@
     <h1>Listado de Trámites</h1>
 
     <!-- Formulario de Filtros -->
-    <form method="GET" class="mb-4">
-      <div class="row g-3">
-        <div class="col-md-4">
+    <form method="GET" class="mb-5">
+      <div class="row g-4">
+        <div class="col-md-2">
           <label for="importancia" class="form-label">Importancia</label>
           <select name="importancia" class="form-select">
             <option value="">Todos</option>
@@ -16,11 +16,15 @@
             <option value="normal" {% if request.GET.importancia == 'normal' %}selected{% endif %}>Normal</option>
           </select>
         </div>
-        <div class="col-md-3">
-          <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+        <div class="col-md-2">
+          <label for="cod_sig" class="form-label">Código SIG</label>
+          <input type="text" name="cod_sig" class="form-control" value="{{ request.GET.cod_sig }}">
+        </div>  
+        <div class="col-md-2">
+          <label for="fecha_inicio" class="form-label">Fecha Solicitud</label>
           <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <label for="fecha_fin" class="form-label">Fecha Fin</label>
           <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
         </div>
@@ -40,8 +44,8 @@
             <th>Proyecto</th>
             <th>Fecha Solicitud</th>
             <th>Gerencia</th>
-            <th>Categoría Predio FMI</th>
-            <th>Estado Folio Matrícula</th>
+            <th>Código SIG</th>
+            <th>Entidad</th>
             <th>Prioridad</th>
             <th>Acción</th>
           </tr>
@@ -53,8 +57,8 @@
             <td>{{ predio.proyecto }}</td>
             <td>{{ predio.fecha_solicitud }}</td>
             <td>{{ predio.gerencia }}</td>
-            <td>{{ predio.categoria_predio_fmi }}</td>
-            <td>{{ predio.estado_folio_matricula }}</td>
+            <td>{{ predio.cod_sig }}</td>
+            <td>{{ predio.entidad }}</td>
             <td>
               {% if predio.es_importante %}
                 <span class="badge bg-danger">¡Prioridad!</span>

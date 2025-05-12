@@ -9,16 +9,21 @@ from .models import Predio
 from django.db.models import Count, Q
 from datetime import date
 import matplotlib.pyplot as plt
-import io, base64
+import io, base64, re
 import pandas as pd
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
 from .forms import (PredioForm,PrediosObjetoForm, DatosFolioForm, DatosJuriFMIForm,
-    ValidacionExistenciaForm, EstadoAdquisicionForm, SeguimientoForm)
+    ValidacionExistenciaForm, EstadoAdquisicionForm, SeguimientoForm,ConsultaNaturalForm)
+import requests
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.db import connection
+import xlsxwriter
 
 # Create your views here.
 
-@login_required
+@login_required(login_url='signin')
 def signup(request):
     if request.method == 'GET':
         return render(request, 'signup.html', {"form": UserCreationForm})
@@ -37,12 +42,13 @@ def signup(request):
         return render(request, 'signup.html', {"form": UserCreationForm, "error": "Passwords did not match."})
 
 
-@login_required
+@login_required(login_url='signin')
 def predios(request):
-    predios = Predio.objects.filter(user=request.user)
+    predios = Predio.objects.all()
     
     # Obtener parámetros de filtro desde el request
     importancia = request.GET.get('importancia')
+    cod_sig = request.GET.get('cod_sig','')
     fecha_inicio = request.GET.get('fecha_inicio')
     fecha_fin = request.GET.get('fecha_fin')
     
@@ -57,7 +63,10 @@ def predios(request):
         predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
     if fecha_fin:
         predios = predios.filter(fecha_solicitud__lte=fecha_fin)
-    
+    #Filtrar por codigo SIG
+    if cod_sig:
+        predios = predios.filter(cod_sig=cod_sig)
+
     context = {"predios": predios}
     return render(request, 'predios.html', context)
 
@@ -169,7 +178,6 @@ def signin(request):
         for predio in predios:
             if predio.fecha_solicitud:
                 predio.ultima_fecha_acceso = today
-                predio.actualizar_importancia()
                 predio.save()
                 print(f"Total predios encontrados para {user.username}: {predios.count()}")
         return redirect('predios')
@@ -179,6 +187,12 @@ def signin(request):
 @login_required(login_url='signin')
 def predio_detail(request, predio_id):
     predio = get_object_or_404(Predio, pk=predio_id)
+    puede_editar = (
+        request.user.is_superuser or
+        request.user.is_staff or
+        request.user.groups.filter(name='oficina').exists()
+    )
+
 
     if request.method == 'POST':
         forms = [
@@ -214,7 +228,8 @@ def predio_detail(request, predio_id):
         'form_juri': forms[2],
         'form_validacion': forms[3],
         'form_estado': forms[4],
-        'form_seguimiento': forms[5]
+        'form_seguimiento': forms[5],
+        'puede_editar': puede_editar
     })
 
     return render(request, 'predio_detail.html', context)
@@ -222,7 +237,7 @@ def predio_detail(request, predio_id):
 
 @login_required
 def complete_predio(request, predio_id):
-    predio = get_object_or_404(Predio, pk=predio_id, user=request.user)
+    predio = get_object_or_404(Predio, pk=predio_id)
     if request.method == 'POST':
         predio.datecompleted = timezone.now()
         predio.save()
@@ -230,17 +245,79 @@ def complete_predio(request, predio_id):
 
 @login_required
 def delete_predio(request, predio_id):
-    predio = get_object_or_404(Predio, pk=predio_id, user=request.user)
+    predio = get_object_or_404(Predio, pk=predio_id)
     if request.method == 'POST':
         predio.delete()
         return redirect('predios')
     return redirect('predio_detail', predio_id=predio_id)
     
 
+@csrf_exempt
 def cliente_dashboard(request):
-    # Filtros
+    contexto = {}
+
+    # Formulario de lenguaje natural
+    form_natural = ConsultaNaturalForm()
+    resultados_nl = None
+    error = None
+
+    # Si es POST, viene del formulario de consulta natural
+    if request.method == "POST":
+        form_natural = ConsultaNaturalForm(request.POST)
+        if form_natural.is_valid():
+            consulta = form_natural.cleaned_data['consulta_natural']
+            contexto["consulta_natural"] = consulta
+
+            # Llamada a Ollama
+            try:
+                response = requests.post(
+                    'http://ollama:11434/api/generate',
+                    json={
+                        "model": "llama3",
+                        "prompt": f"""
+Eres un asistente experto en bases de datos. Genera una consulta SQL segura basada en el siguiente modelo:
+
+Tabla: Predio
+Campos disponibles:
+- proyecto, vigencia, gerencia, categoria_predio_fmi, estado_folio_matricula, categoria_fmi,
+  tipo_documental, estado, estado_compra, sub_estado_compra, envio_open_text, accion_tecnica,
+  fecha_solicitud, fecha_respuesta, datecompleted, es_importante, fecha_reiteracion,
+  ultima_fecha_acceso, campo, cod_sig, fmi, ced_catastral, nom_predio, documento,
+  fecha_documento, entidad, municipio, documentos_municipio, nombre_predio_opentext,
+  cod_sig_opentext, cod_sig_asociado, fecha_pago, valor_pago, fecha_adquisicion,
+  estrategia, responsable_adquisicion, link_sharepoint, responsable_seguimiento,
+  fecha_nueva_busqueda, responsable_nueva_busqueda, cod_especificacion, adquirir,
+  repetido, paquete
+
+Genera solo consultas SQL tipo SELECT seguras y legibles para PostgreSQL, sin modificar datos.
+Consulta: {consulta}
+
+SQL:
+""",
+                        "stream": False
+                    }
+                )
+                response.raise_for_status()
+                sql_query = response.json().get("response", "").strip()
+
+                if not re.match(r'(?i)^select .* from .*predio.*', sql_query):
+                    error = "La consulta generada no es válida."
+                    contexto["sql_generado"] = sql_query
+                else:
+                    with connection.cursor() as cursor:
+                        cursor.execute(sql_query)
+                        columns = [col[0] for col in cursor.description]
+                        rows = cursor.fetchall()
+                        resultados_nl = [dict(zip(columns, row)) for row in rows]
+                        contexto["sql_generado"] = sql_query
+                        request.session["sql_generado"] = sql_query
+            except Exception as e:
+                error = f"Error al procesar la consulta: {e}"
+
+    # Filtros GET
     campo = request.GET.get('campo', '')
     fmi = request.GET.get('fmi', '')
+    cod_sig = request.GET.get('cod_sig','')
     proyecto = request.GET.get('proyecto', '')
     fecha_inicio = request.GET.get('fecha_inicio', '')
     fecha_fin = request.GET.get('fecha_fin', '')
@@ -257,14 +334,16 @@ def cliente_dashboard(request):
         predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
     if fecha_fin:
         predios = predios.filter(fecha_solicitud__lte=fecha_fin)
+    if cod_sig:
+        predios = predios.filter(cod_sig=cod_sig)
 
-    # Gráfico de pastel: estado folio matrícula
+    # Gráfico circular
     estado_counts = (
         predios
-        .values('estado_folio_matricula')
-        .annotate(total=Count('estado_folio_matricula'))
+        .values('es_importante')
+        .annotate(total=Count('tipo_documental'))
     )
-    labels = [item['estado_folio_matricula'] or 'Sin estado' for item in estado_counts]
+    labels = [item['es_importante'] for item in estado_counts]
     sizes = [item['total'] for item in estado_counts]
     colors = ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d']
 
@@ -273,14 +352,12 @@ def cliente_dashboard(request):
     plt.axis('equal')
     buffer = io.BytesIO()
     plt.savefig(buffer, format='png')
-    buffer.seek(0)
     graphic = base64.b64encode(buffer.getvalue()).decode()
     buffer.close()
     plt.clf()
 
-    # Gráfico temporal: solicitudes por fecha
-    fechas_df = pd.DataFrame(predios.values('fecha_solicitud'))
-    fechas_df = fechas_df.dropna()
+    # Gráfico temporal
+    fechas_df = pd.DataFrame(predios.values('fecha_solicitud')).dropna()
     fechas_df['fecha_solicitud'] = pd.to_datetime(fechas_df['fecha_solicitud'])
     conteo_fechas = fechas_df['fecha_solicitud'].value_counts().sort_index()
 
@@ -293,15 +370,17 @@ def cliente_dashboard(request):
     plt.tight_layout()
     buffer2 = io.BytesIO()
     plt.savefig(buffer2, format='png')
-    buffer2.seek(0)
     grafico_fechas = base64.b64encode(buffer2.getvalue()).decode()
     buffer2.close()
     plt.clf()
 
     # Últimos predios
-    ultimos_predios = predios.order_by('-id')[:10]
+    ultimos_predios = predios.order_by('id')[:10]
 
-    context = {
+    contexto.update({
+        'form_natural': form_natural,
+        'resultados_nl': resultados_nl,
+        'error': error,
         'graphic': graphic,
         'grafico_fechas': grafico_fechas,
         'ultimos_predios': ultimos_predios,
@@ -310,6 +389,45 @@ def cliente_dashboard(request):
         'proyecto': proyecto,
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,
-    }
+    })
 
-    return render(request, 'dashboard.html', context)
+    return render(request, 'dashboard.html', contexto)
+
+def exportar_consulta_excel(request):
+    sql = request.session.get("sql_generado")
+
+    if not sql:
+        return JsonResponse({"error": "No hay consulta generada para exportar."})
+
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            columns = [col[0] for col in cursor.description]
+            rows = cursor.fetchall()
+
+        # Crear archivo Excel en memoria
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output)
+        worksheet = workbook.add_worksheet()
+
+        # Encabezados
+        for col_num, column_name in enumerate(columns):
+            worksheet.write(0, col_num, column_name)
+
+        # Datos
+        for row_num, row in enumerate(rows, start=1):
+            for col_num, cell in enumerate(row):
+                worksheet.write(row_num, col_num, str(cell))
+
+        workbook.close()
+        output.seek(0)
+
+        response = JsonResponse({})
+        response = HttpResponse(
+            output,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="consulta_natural.xlsx"'
+        return response
+    except Exception as e:
+        return JsonResponse({"error": str(e)})

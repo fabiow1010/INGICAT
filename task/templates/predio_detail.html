@@ -4,9 +4,11 @@
 <section class="col-md-10 offset-md-1">
   <form method="POST" class="card card-body mt-4">
     {% csrf_token %}
-
-    <h2 class="mb-4">Actualizar predio: {{ predio.id }}</h2>
-
+    {%if puede_editar%}
+    <h2 class="mb-4">Actualizar predio: {{ predio.cod_sig }}</h2> 
+    {% else %}Actualizar
+    <h2 class="mb-4">Predio: {{ predio.cod_sig }}</h2> 
+    {%endif%}
     {% if error %}
       <div class="alert alert-danger">{{ error }}</div>
     {% endif %}
@@ -82,6 +84,7 @@
       </div>
     </div>
 
+    {% if puede_editar %}
     <div class="mt-4">
       <button type="submit" class="btn btn-success">Guardar cambios</button>
       <form action="{% url 'delete_predio' predio.id %}" method="POST">
@@ -90,6 +93,9 @@
       </form>
       <a href="{% url 'predios' %}" class="btn btn-secondary">Cancelar</a>
     </div>
+    {% else  %}
+      <a href="{% url 'predios' %}" class="btn btn-secondary mb-2 md-5">Volver</a>
+    {% endif %}
   </form>
 </section>
 {% endblock %}

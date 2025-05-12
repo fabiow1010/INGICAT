@@ -1,9 +1,6 @@
 from django.contrib import admin
 from .models import Task, Predio  
 
-# Configuración para Task
-class TaskAdmin(admin.ModelAdmin):
-    readonly_fields = ('created', )
 
 # Configuración para Predio 
 class PredioAdmin(admin.ModelAdmin):
@@ -12,5 +9,5 @@ class PredioAdmin(admin.ModelAdmin):
     list_filter = ('vigencia', 'estado')  # Filtros en la barra lateral
 
 # Registrar ambos modelos en el panel de administración
-admin.site.register(Task, TaskAdmin)
+
 admin.site.register(Predio, PredioAdmin)

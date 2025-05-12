@@ -11,6 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    restart: unless-stopped
 
   web:
     build: .
@@ -28,6 +29,7 @@ services:
       - DB_PASSWORD=ingicat*1003
       - DB_HOST=db
       - DB_PORT=5432
+    restart: unless-stopped
 
   pgadmin:
     image: dpage/pgadmin4
@@ -40,7 +42,18 @@ services:
       - db
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama  
 
 volumes:
   postgres_data:
   pgadmin_data:
+  ollama_data:
+
+

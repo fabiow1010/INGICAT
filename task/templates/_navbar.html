@@ -15,7 +15,7 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a href="/" class="nav-link" title="Ir a la Pantalla de Inicio">Home</a>
+          <a href="/" class="nav-link" title="Ir a la Pantalla de Inicio">Inicio</a>
         </li>
         <li class="nav-item">
           <a href="{% url 'cliente_dashboard' %}" class="nav-link" title="Ir al Resumen de la Gestión Documental">Avances</a>
@@ -35,16 +35,16 @@
             </ul>
           </li>
 
-          {% if user.is_superuser %}
-            <!-- Opciones para superusuarios -->
-            <li class="nav-item">
-              <a href="{% url 'signup' %}" class="nav-link" title="Registrar un Nuevo Usuario">Registrar</a>
-            </li>
-            <li class="nav-item">
-              <a href="/admin/" class="nav-link" title="Panel de Administración">Admin</a>
-            </li>
-          {% endif %}
-
+          {% if user.is_superuser or user.is_staff%}
+          <!-- Opciones para usuarios con privilegios -->
+          <li class="nav-item">
+            <a href="{% url 'signup' %}" class="nav-link" title="Registrar un Nuevo Usuario">Registrar</a>
+          </li>
+          <li class="nav-item">
+            <a href="/admin/" class="nav-link" title="Panel de Administración">Admin</a>
+          </li>
+        {% endif %}
+        
           <li class="nav-item">
             <a class="nav-link" href="/logout" title="Cerrar Sesión">Salir</a>
           </li>
