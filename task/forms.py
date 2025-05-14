@@ -66,9 +66,10 @@ class PredioForm(forms.ModelForm):
 class PrediosObjetoForm(forms.ModelForm):
     class Meta:
         model = Predio
-        fields = ['proyecto', 'vigencia', 'gerencia', 'campo', 'cod_sig']
+        fields = ['proyecto', 'vigencia', 'gerencia', 'campo', 'cod_sig','estado']
         widgets = {
             'proyecto': forms.Select(attrs={'class': 'form-control'}),
+            'estado': forms.Select(attrs={'class': 'form-control'}),
             'vigencia': forms.Select(attrs={'class': 'form-control'}),
             'gerencia': forms.Select(attrs={'class': 'form-control'}),
             'campo': forms.TextInput(attrs={'class': 'form-control'}),

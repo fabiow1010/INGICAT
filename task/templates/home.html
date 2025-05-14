@@ -1,25 +1,74 @@
-{% extends 'base.html' %} {% block content %}
+{% extends 'base.html' %} 
+{% block content %}
+<style>
+  .container {
+    border-radius: 0.5rem;
+    display: grid;
+    grid-template-columns: 0.5fr 1fr 1fr;
+    grid-template-rows: 0.6fr 1.4fr 1fr;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    grid-template-areas:
+      "descripcion Titulos Titulos"
+      "descripcion Contenido Contenido"
+      "descripcion Contenido Contenido";
+  }
 
-<main class="container py-5 mt-5">
-  <section class="card card-body ">
-    <h1 class="display-2 text-center">Ingicat S.A.S</h1>
-    <h2 class="display-3 text-center">Proyecto de Gestión Documental</h2>
+  .Titulos {
+    grid-area: Titulos;
+    background-color: #add8e6; /* azul claro */
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  .descripcion {
+    grid-area: descripcion;
+    background-color: #d2f8d2; /* verde claro */
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  .Contenido {
+    grid-area: Contenido;
+    background-color: #f5f5dc; /* beige */
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+</style>
+
+<main class="container card-body mt-5 border background bg text-center">
+  <div class="Titulos border text-center">
+    <h4 class="text-center">Ingicat S.A.S</h4>
+    <h4 class="text-center">Proyecto de Gestión Documental</h4>
+  </div>
+
+  <div class="descripcion border text-center">
     <p>
       Lorem ipsum dolor sit amet consectetur adipisicing elit. Excepturi, sed
       eos. Error consequatur blanditiis natus quod mollitia vel doloribus
       dolores quae. Quia voluptatem, aliquid cum vel repellendus dolore magni
       incidunt.
     </p>
+  </div>
+
+  <div class="Contenido border text-center">
     <div class="text-center">
+      <p>
+        Lorem ipsum dolor sit amet consectetur adipisicing elit. Excepturi, sed
+        eos. Error consequatur blanditiis natus quod mollitia vel doloribus
+        dolores quae. Quia voluptatem, aliquid cum vel repellendus dolore magni
+        incidunt.
+      </p>
+
       {% if user.is_authenticated %}
-      <a class="btn btn-primary" href="/predios/" title="Empezar Gestión">Empezar</a> 
-      {%else %} 
-      <a class="btn btn-primary" href="/signin/"  title="Iniciar Sesión">Iniciar Sesión</a> 
-      {% if user.is_superuser%}
-      <a class="btn btn-primary" href="/signup/" title="Registrar Nuevo Usuario">Registrar</a>
-      {%endif%}
-      {%endif%}
+        <a class="btn btn-primary" href="/predios/" title="Empezar Gestión">Empezar</a> 
+      {% else %} 
+        <a class="btn btn-primary" href="/signin/"  title="Iniciar Sesión">Iniciar Sesión</a> 
+        {% if user.is_superuser %}
+          <a class="btn btn-primary" href="/signup/" title="Registrar Nuevo Usuario">Registrar</a>
+        {% endif %}
+      {% endif %}
     </div>
-  </section>
+  </div>
 </main>
 {% endblock %}

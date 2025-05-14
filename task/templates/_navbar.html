@@ -1,4 +1,24 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<style>
+  .navbar-carmesi {
+    background-color: #960018 !important; /* rojo carmesí */
+  }
+
+  .navbar-carmesi .nav-link,
+  .navbar-carmesi .navbar-brand,
+  .navbar-carmesi .dropdown-item {
+    color: #ffffff !important; /* texto blanco */
+  }
+
+  .navbar-carmesi .dropdown-menu {
+    background-color: #960018 !important; /* rojo carmesí */
+  }
+
+  .navbar-carmesi .dropdown-item:hover {
+    background-color: #b22222 !important; /* tono más claro al pasar el mouse */
+  }
+</style>
+
+<nav class="navbar navbar-expand-lg navbar-carmesi">
   <div class="container">
     <a class="navbar-brand" href="/">
       {% if user.is_authenticated %}
@@ -28,23 +48,22 @@
               aria-expanded="false" title="Trámites">
               Trámites
             </a>
-            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="tramitesDropdown">
+            <ul class="dropdown-menu" aria-labelledby="tramitesDropdown">
               <li><a class="dropdown-item" href="{% url 'predio_completed' %}" title="Completados">Completados</a></li>
               <li><a class="dropdown-item" href="{% url 'predios' %}" title="Gestión Documental en Proceso">Trámites</a></li>
               <li><a class="dropdown-item" href="{% url 'create_predio' %}" title="Nuevo Trámite">Crear Trámite</a></li>
             </ul>
           </li>
 
-          {% if user.is_superuser or user.is_staff%}
-          <!-- Opciones para usuarios con privilegios -->
+          {% if user.is_superuser or user.is_staff %}
           <li class="nav-item">
             <a href="{% url 'signup' %}" class="nav-link" title="Registrar un Nuevo Usuario">Registrar</a>
           </li>
           <li class="nav-item">
             <a href="/admin/" class="nav-link" title="Panel de Administración">Admin</a>
           </li>
-        {% endif %}
-        
+          {% endif %}
+
           <li class="nav-item">
             <a class="nav-link" href="/logout" title="Cerrar Sesión">Salir</a>
           </li>

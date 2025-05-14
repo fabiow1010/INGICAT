@@ -256,64 +256,7 @@ def delete_predio(request, predio_id):
 def cliente_dashboard(request):
     contexto = {}
 
-    # Formulario de lenguaje natural
-    form_natural = ConsultaNaturalForm()
-    resultados_nl = None
-    error = None
-
     # Si es POST, viene del formulario de consulta natural
-    if request.method == "POST":
-        form_natural = ConsultaNaturalForm(request.POST)
-        if form_natural.is_valid():
-            consulta = form_natural.cleaned_data['consulta_natural']
-            contexto["consulta_natural"] = consulta
-
-            # Llamada a Ollama
-            try:
-                response = requests.post(
-                    'http://ollama:11434/api/generate',
-                    json={
-                        "model": "llama3",
-                        "prompt": f"""
-Eres un asistente experto en bases de datos. Genera una consulta SQL segura basada en el siguiente modelo:
-
-Tabla: Predio
-Campos disponibles:
-- proyecto, vigencia, gerencia, categoria_predio_fmi, estado_folio_matricula, categoria_fmi,
-  tipo_documental, estado, estado_compra, sub_estado_compra, envio_open_text, accion_tecnica,
-  fecha_solicitud, fecha_respuesta, datecompleted, es_importante, fecha_reiteracion,
-  ultima_fecha_acceso, campo, cod_sig, fmi, ced_catastral, nom_predio, documento,
-  fecha_documento, entidad, municipio, documentos_municipio, nombre_predio_opentext,
-  cod_sig_opentext, cod_sig_asociado, fecha_pago, valor_pago, fecha_adquisicion,
-  estrategia, responsable_adquisicion, link_sharepoint, responsable_seguimiento,
-  fecha_nueva_busqueda, responsable_nueva_busqueda, cod_especificacion, adquirir,
-  repetido, paquete
-
-Genera solo consultas SQL tipo SELECT seguras y legibles para PostgreSQL, sin modificar datos.
-Consulta: {consulta}
-
-SQL:
-""",
-                        "stream": False
-                    }
-                )
-                response.raise_for_status()
-                sql_query = response.json().get("response", "").strip()
-
-                if not re.match(r'(?i)^select .* from .*predio.*', sql_query):
-                    error = "La consulta generada no es válida."
-                    contexto["sql_generado"] = sql_query
-                else:
-                    with connection.cursor() as cursor:
-                        cursor.execute(sql_query)
-                        columns = [col[0] for col in cursor.description]
-                        rows = cursor.fetchall()
-                        resultados_nl = [dict(zip(columns, row)) for row in rows]
-                        contexto["sql_generado"] = sql_query
-                        request.session["sql_generado"] = sql_query
-            except Exception as e:
-                error = f"Error al procesar la consulta: {e}"
-
     # Filtros GET
     campo = request.GET.get('campo', '')
     fmi = request.GET.get('fmi', '')
@@ -340,28 +283,48 @@ SQL:
     # Gráfico circular
     estado_counts = (
         predios
-        .values('es_importante')
-        .annotate(total=Count('tipo_documental'))
+        .values('estado')
+        .annotate(total=Count('id'))
+        .order_by('-total')
     )
-    labels = [item['es_importante'] for item in estado_counts]
+
+    labels = [item['estado'] for item in estado_counts]
     sizes = [item['total'] for item in estado_counts]
     colors = ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d']
 
-    plt.figure(figsize=(6, 6))
-    plt.pie(sizes, labels=labels, colors=colors[:len(labels)], autopct='%1.1f%%', startangle=90)
+    # Función para mostrar cantidad + porcentaje
+    def make_autopct(values):
+        def my_autopct(pct):
+            total = sum(values)
+            count = int(round(pct * total / 100.0))
+            return f'{pct:.1f}%\n({count})'
+        return my_autopct
+
+    plt.figure(figsize=(6, 4))
+    plt.pie(
+        sizes,
+        labels=labels,
+        colors=colors[:len(labels)],
+        autopct=make_autopct(sizes),
+        startangle=90
+    )
     plt.axis('equal')
+
     buffer = io.BytesIO()
     plt.savefig(buffer, format='png')
     graphic = base64.b64encode(buffer.getvalue()).decode()
     buffer.close()
     plt.clf()
 
+
     # Gráfico temporal
     fechas_df = pd.DataFrame(predios.values('fecha_solicitud')).dropna()
     fechas_df['fecha_solicitud'] = pd.to_datetime(fechas_df['fecha_solicitud'])
-    conteo_fechas = fechas_df['fecha_solicitud'].value_counts().sort_index()
+    fechas_df['solo_fecha'] = fechas_df['fecha_solicitud'].dt.date
 
-    plt.figure(figsize=(8, 4))
+    conteo_fechas = fechas_df['solo_fecha'].value_counts().sort_index()
+
+    plt.figure(figsize=(6, 4))
     conteo_fechas.plot(kind='bar', color='#17a2b8')
     plt.title('Solicitudes por Fecha')
     plt.xlabel('Fecha')
@@ -374,13 +337,11 @@ SQL:
     buffer2.close()
     plt.clf()
 
+
     # Últimos predios
     ultimos_predios = predios.order_by('id')[:10]
 
     contexto.update({
-        'form_natural': form_natural,
-        'resultados_nl': resultados_nl,
-        'error': error,
         'graphic': graphic,
         'grafico_fechas': grafico_fechas,
         'ultimos_predios': ultimos_predios,
@@ -392,42 +353,3 @@ SQL:
     })
 
     return render(request, 'dashboard.html', contexto)
-
-def exportar_consulta_excel(request):
-    sql = request.session.get("sql_generado")
-
-    if not sql:
-        return JsonResponse({"error": "No hay consulta generada para exportar."})
-
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute(sql)
-            columns = [col[0] for col in cursor.description]
-            rows = cursor.fetchall()
-
-        # Crear archivo Excel en memoria
-        output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output)
-        worksheet = workbook.add_worksheet()
-
-        # Encabezados
-        for col_num, column_name in enumerate(columns):
-            worksheet.write(0, col_num, column_name)
-
-        # Datos
-        for row_num, row in enumerate(rows, start=1):
-            for col_num, cell in enumerate(row):
-                worksheet.write(row_num, col_num, str(cell))
-
-        workbook.close()
-        output.seek(0)
-
-        response = JsonResponse({})
-        response = HttpResponse(
-            output,
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-        response['Content-Disposition'] = 'attachment; filename="consulta_natural.xlsx"'
-        return response
-    except Exception as e:
-        return JsonResponse({"error": str(e)})
