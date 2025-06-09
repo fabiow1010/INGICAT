@@ -95,7 +95,10 @@ class Predio(models.Model):
             self.ultima_fecha_acceso = timezone.now().date()
 
         if self.fecha_solicitud:
-            dias_diferencia = (self.ultima_fecha_acceso - self.fecha_solicitud).days
+            if self.fecha_reiteracion:
+                dias_diferencia = (self.ultima_fecha_acceso - self.fecha_reiteracion).days
+            else:
+                dias_diferencia = (self.ultima_fecha_acceso - self.fecha_solicitud).days
             self.es_importante = dias_diferencia > 8
         else:
             self.es_importante = False

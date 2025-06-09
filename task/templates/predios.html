@@ -73,7 +73,15 @@
           {% endfor %}
         </tbody>
       </table>
-    </div>
+    <form method="post" action="{% url 'descargar_excel' %}" class="mt-4">
+      {% csrf_token %}
+      <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-primary">
+          Descargar informe de Excel
+        </button>
+      </div>
+    </form>
+
   </div>
 </main>
 

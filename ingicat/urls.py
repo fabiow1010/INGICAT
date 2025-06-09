@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from task import views
 
 urlpatterns = [
@@ -31,4 +31,5 @@ urlpatterns = [
     path('predio/<int:predio_id>/complete', views.complete_predio, name='complete_predio'),
     path('predio/<int:predio_id>/delete', views.delete_predio, name='delete_predio'),
     path('dashboard/', views.cliente_dashboard, name='cliente_dashboard'),
-]
+    path('descargar_excel/', views.descargar_excel, name='descargar_excel'),
+    ]
