@@ -4,4 +4,4 @@ __pycache__/
 */migrations/
 *.pyc
 *.log
-.myvenv
+.env 

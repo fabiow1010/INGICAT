@@ -1,12 +1,13 @@
+# docker-compose.yml
 version: "3.9"
 
 services:
   db:
     image: postgres:14
     environment:
-      POSTGRES_DB: ingicat_db
-      POSTGRES_USER: fabian
-      POSTGRES_PASSWORD: ingicat*1003
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -23,19 +24,19 @@ services:
     depends_on:
       - db
     environment:
-      - DEBUG=1
-      - DB_NAME=ingicat_db
-      - DB_USER=fabian
-      - DB_PASSWORD=ingicat*1003
-      - DB_HOST=db
-      - DB_PORT=5432
+      DEBUG: ${DJANGO_DEBUG}
+      DB_NAME: ${DJANGO_DB_NAME}
+      DB_USER: ${DJANGO_DB_USER}
+      DB_PASSWORD: ${DJANGO_DB_PASSWORD}
+      DB_HOST: ${DJANGO_DB_HOST}
+      DB_PORT: ${DJANGO_DB_PORT}
     restart: unless-stopped
 
   pgadmin:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: fabian.fernandez@ingicat.com
-      PGADMIN_DEFAULT_PASSWORD: fabian1003
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
       - "5050:80"
     depends_on:
@@ -44,16 +45,6 @@ services:
       - pgadmin_data:/var/lib/pgadmin
     restart: unless-stopped
 
-  ollama:
-    image: ollama/ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama  
-
 volumes:
   postgres_data:
   pgadmin_data:
-  ollama_data:
-
-
