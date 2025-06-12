@@ -102,6 +102,10 @@ class Predio(models.Model):
             self.es_importante = dias_diferencia > 8
         else:
             self.es_importante = False
+        if self.fecha_respuesta:
+            self.datecompleted = self.fecha_respuesta
+        else:
+            self.datecompleted = None
 
         super().save(*args, **kwargs)  # Llama al método original para guardar
 

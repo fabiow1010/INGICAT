@@ -74,9 +74,10 @@ def predios(request):
 
 @login_required
 def predio_completed(request):
-    predios = Predio.objects.filter(user=request.user, datecompleted__isnull=False).order_by('-datecompleted')
-    return render(request, 'predios.html', {"predios": predios})
-
+    if request.method == 'GET':
+        # Filtrar predios completados por el usuario actual
+        predios = Predio.objects.filter(datecompleted__isnull=False).order_by('-datecompleted')
+        return render(request, 'predios.html', {"predios": predios})
 
 
 @login_required(login_url='signin')
@@ -239,8 +240,8 @@ def predio_detail(request, predio_id):
 
 @login_required
 def complete_predio(request, predio_id):
-    predio = get_object_or_404(Predio, pk=predio_id)
     if request.method == 'POST':
+        predio = get_object_or_404(Predio, pk=predio_id)
         predio.datecompleted = timezone.now()
         predio.save()
         return redirect('predios')
