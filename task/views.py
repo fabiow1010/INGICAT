@@ -30,7 +30,7 @@ from django.db import connection
 import xlsxwriter
 from openpyxl import Workbook
 from django.http import HttpResponse
-
+from django.db.models import Model
 # Create your views here.
 
 
@@ -407,52 +407,37 @@ def cliente_dashboard(request):
 @login_required(login_url="signin")
 def descargar_excel(request):
     if request.method == "POST":
-        # Crear el libro y la hoja de Excel
+        # Crear el libro de Excel
         wb = Workbook()
         ws = wb.active
         ws.title = "Reporte Predios"
 
-        # Encabezados personalizados según los campos del modelo
-        headers = [
-            "ID",
-            "Proyecto",
-            "FMI",
-            "Nombre del Predio",
-            "Municipio",
-            "Fecha del Documento",
-            "Valor de Pago",
-            "Fecha de Pago",
-            "Estado",
-            "Responsable",
-        ]
-        ws.append(headers)
+        # Obtener todos los campos del modelo Predio
+        campos = [f.name for f in Predio._meta.fields if f.related_model != User]
+
+        # Escribir encabezados
+        ws.append([campo.replace("_", " ").capitalize() for campo in campos])
 
         # Consultar los datos
         predios = Predio.objects.all()
 
-        # Escribir los datos en la hoja
         for p in predios:
-            ws.append(
-                [
-                    p.id,
-                    p.proyecto,
-                    p.fmi,
-                    p.nom_predio,
-                    p.municipio,
-                    p.fecha_documento.strftime("%Y-%m-%d") if p.fecha_documento else "",
-                    p.valor_pago,
-                    p.fecha_pago.strftime("%Y-%m-%d") if p.fecha_pago else "",
-                    p.estado,
-                    p.responsable_adquisicion,
-                ]
-            )
+            fila = []
+            for campo in campos:
+                valor = getattr(p, campo)
 
-        # Preparar la respuesta HTTP
+                # Si es una fecha
+                if hasattr(valor, 'strftime'):
+                    valor = valor.strftime('%Y-%m-%d')
+                elif isinstance(valor, Model):  # Omitir otros objetos complejos
+                    valor = str(valor)  # O puedes poner valor = '' si no quieres mostrar nada
+                fila.append(valor)
+            ws.append(fila)
+
+        # Preparar la respuesta
         response = HttpResponse(
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
         response["Content-Disposition"] = "attachment; filename=reporte_predios.xlsx"
-
-        # Guardar el Excel en la respuesta
         wb.save(response)
         return response
