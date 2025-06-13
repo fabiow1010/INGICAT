@@ -165,7 +165,7 @@ class Predio(models.Model):
     cod_sig = models.CharField(max_length=30, null=True, blank=True)
     fmi = models.CharField(max_length=10, default="00000", null=True, blank=True)
     ced_catastral = models.CharField(max_length=31, null=True, blank=True)
-    nom_predio = models.CharField(max_length=50, default="Sin Informacion", null=True, blank=True)
+    nom_predio = models.CharField(max_length=200, default="Sin Informacion", null=True, blank=True)
     documento = models.CharField(max_length=15, null=True, blank=True)
     fecha_documento = models.DateField(null=True, blank=True)
     entidad = models.CharField(max_length=100, null=True, blank=True)
@@ -186,7 +186,7 @@ class Predio(models.Model):
     fecha_nueva_busqueda = models.DateField(null=True, blank=True)
     responsable_nueva_busqueda = models.CharField(max_length=50, null=True, blank=True)
     cod_especificacion = models.IntegerField(null=True, blank=True)
-    adquirir = models.BooleanField(default=True)
+    adquirir = models.BooleanField(default=True, null=True, blank=True)
     repetido = models.CharField(
         max_length=50, choices=REPETIDO_CHOISES, default="NO APLICA", null=True, blank=True
     )
