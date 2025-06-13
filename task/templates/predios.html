@@ -4,7 +4,8 @@
 <main class="container card card-body mt-5">
   <div class="row">
     <h1>Listado de Trámites</h1>
-
+    <div class="col-md-12 border-bottom mb-4 border-primary position-sticky top-0 bg-white z-index-10">
+      <p>En esta sección se muestran los trámites de predios registrados en el sistema. Puedes filtrar por importancia, código SIG y fechas.</p>
     <!-- Formulario de Filtros -->
     <form method="GET" class="mb-5">
       <div class="row g-4">
@@ -34,7 +35,15 @@
         </div>
       </div>
     </form>
-
+    <form method="post" action="{% url 'descargar_excel' %}" class="mt-4 mb-5">
+      {% csrf_token %}
+      <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-primary">
+          Descargar informe de Excel
+        </button>
+      </div>
+    </form>
+    </div>
     <!-- Tabla Responsiva -->
     <div class="table-responsive">
       <table class="table table-bordered table-striped table-hover">
@@ -73,14 +82,7 @@
           {% endfor %}
         </tbody>
       </table>
-    <form method="post" action="{% url 'descargar_excel' %}" class="mt-4">
-      {% csrf_token %}
-      <div class="d-flex justify-content-center">
-        <button type="submit" class="btn btn-primary">
-          Descargar informe de Excel
-        </button>
-      </div>
-    </form>
+
 
   </div>
 </main>

@@ -13,8 +13,16 @@ import io, base64, re
 import pandas as pd
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect
-from .forms import (PredioForm,PrediosObjetoForm, DatosFolioForm, DatosJuriFMIForm,
-    ValidacionExistenciaForm, EstadoAdquisicionForm, SeguimientoForm,ConsultaNaturalForm)
+from .forms import (
+    PredioForm,
+    PrediosObjetoForm,
+    DatosFolioForm,
+    DatosJuriFMIForm,
+    ValidacionExistenciaForm,
+    EstadoAdquisicionForm,
+    SeguimientoForm,
+    ConsultaNaturalForm,
+)
 import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -25,82 +33,97 @@ from django.http import HttpResponse
 
 # Create your views here.
 
-@login_required(login_url='signin')
+
+@login_required(login_url="signin")
 def signup(request):
-    if request.method == 'GET':
-        return render(request, 'signup.html', {"form": UserCreationForm})
+    if request.method == "GET":
+        return render(request, "signup.html", {"form": UserCreationForm})
     else:
 
         if request.POST["password1"] == request.POST["password2"]:
             try:
                 user = User.objects.create_user(
-                    request.POST["username"], password=request.POST["password1"])
+                    request.POST["username"], password=request.POST["password1"]
+                )
                 user.save()
                 login(request, user)
-                return redirect('predios')
+                return redirect("predios")
             except IntegrityError:
-                return render(request, 'signup.html', {"form": UserCreationForm, "error": "Username already exists."})
+                return render(
+                    request,
+                    "signup.html",
+                    {"form": UserCreationForm, "error": "Username already exists."},
+                )
 
-        return render(request, 'signup.html', {"form": UserCreationForm, "error": "Passwords did not match."})
+        return render(
+            request,
+            "signup.html",
+            {"form": UserCreationForm, "error": "Passwords did not match."},
+        )
 
 
-@login_required(login_url='signin')
+@login_required(login_url="signin")
 def predios(request):
     predios = Predio.objects.all()
-    
+
     # Obtener parámetros de filtro desde el request
-    importancia = request.GET.get('importancia')
-    cod_sig = request.GET.get('cod_sig','')
-    fecha_inicio = request.GET.get('fecha_inicio')
-    fecha_fin = request.GET.get('fecha_fin')
-    
+    importancia = request.GET.get("importancia")
+    cod_sig = request.GET.get("cod_sig", "")
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
+
     # Filtrar por importancia si está especificado
-    if importancia == 'importante':
+    if importancia == "importante":
         predios = predios.filter(es_importante=True)
-    elif importancia == 'normal':
+    elif importancia == "normal":
         predios = predios.filter(es_importante=False)
-    
+
     # Filtrar por rango de fechas si están especificadas
     if fecha_inicio:
         predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
     if fecha_fin:
         predios = predios.filter(fecha_solicitud__lte=fecha_fin)
-    #Filtrar por codigo SIG
+    # Filtrar por codigo SIG
     if cod_sig:
         predios = predios.filter(cod_sig=cod_sig)
 
     context = {"predios": predios}
-    return render(request, 'predios.html', context)
+    return render(request, "predios.html", context)
+
 
 @login_required
 def predio_completed(request):
-    if request.method == 'GET':
+    if request.method == "GET":
         # Filtrar predios completados por el usuario actual
-        predios = Predio.objects.filter(datecompleted__isnull=False).order_by('-datecompleted')
-        return render(request, 'predios.html', {"predios": predios})
+        predios = Predio.objects.filter(datecompleted__isnull=False).order_by(
+            "-datecompleted"
+        )
+        return render(request, "predios.html", {"predios": predios})
 
 
-@login_required(login_url='signin')
+@login_required(login_url="signin")
 def create_predio(request):
     if request.method == "POST":
         # Crear formularios por secciones
         forms = [
-            PrediosObjetoForm(request.POST, prefix='objeto'),
-            DatosFolioForm(request.POST, prefix='folio'),
-            DatosJuriFMIForm(request.POST, prefix='juri'),
-            ValidacionExistenciaForm(request.POST, prefix='validacion'),
-            EstadoAdquisicionForm(request.POST, prefix='estado'),
-            SeguimientoForm(request.POST, prefix='seguimiento')
+            PrediosObjetoForm(request.POST, prefix="objeto"),
+            DatosFolioForm(request.POST, prefix="folio"),
+            DatosJuriFMIForm(request.POST, prefix="juri"),
+            ValidacionExistenciaForm(request.POST, prefix="validacion"),
+            EstadoAdquisicionForm(request.POST, prefix="estado"),
+            SeguimientoForm(request.POST, prefix="seguimiento"),
         ]
 
         # Validar si todos los formularios son válidos
         if all(f.is_valid() for f in forms):
             try:
                 # Guardar el nuevo predio
-                new_predio = forms[0].save(commit=False)  # Usamos el primer formulario para el objeto predio
+                new_predio = forms[0].save(
+                    commit=False
+                )  # Usamos el primer formulario para el objeto predio
                 new_predio.user = request.user  # Asignamos el usuario
                 new_predio.save()  # Guardamos el objeto predio
-                
+
                 # Guardamos las demás secciones
                 for form in forms:
                     form.instance = new_predio  # Aseguramos que cada formulario esté vinculado al nuevo predio
@@ -108,35 +131,41 @@ def create_predio(request):
 
                 # Mensaje de éxito
                 messages.success(request, "Predio creado con éxito.")
-                return redirect('predios')  
+                return redirect("predios")
             except Exception as e:
                 # En caso de cualquier error inesperado
                 print(e)
                 messages.error(request, f"Error al crear el Predio: {str(e)}")
-                return redirect('create_predio')  # Redirigir a la misma página si hay error
+                return redirect(
+                    "create_predio"
+                )  # Redirigir a la misma página si hay error
         else:
             # En caso de que alguno de los formularios no sea válido
             print([form.errors for form in forms])  # Para depurar errores
-            messages.error(request, "Formulario inválido. Por favor, revisa los campos.")
+            messages.error(
+                request, "Formulario inválido. Por favor, revisa los campos."
+            )
             context = {
-                "form_objeto": forms[0],  # Mostrar el primer formulario en caso de error
+                "form_objeto": forms[
+                    0
+                ],  # Mostrar el primer formulario en caso de error
                 "form_folio": forms[1],
                 "form_juri": forms[2],
                 "form_validacion": forms[3],
                 "form_estado": forms[4],
-                "form_seguimiento": forms[5]
+                "form_seguimiento": forms[5],
             }
-            return render(request, 'create_predio.html', context)
-    
+            return render(request, "create_predio.html", context)
+
     else:
         # Si es GET, inicializamos los formularios vacíos
         forms = [
-            PrediosObjetoForm(prefix='objeto'),
-            DatosFolioForm(prefix='folio'),
-            DatosJuriFMIForm(prefix='juri'),
-            ValidacionExistenciaForm(prefix='validacion'),
-            EstadoAdquisicionForm(prefix='estado'),
-            SeguimientoForm(prefix='seguimiento')
+            PrediosObjetoForm(prefix="objeto"),
+            DatosFolioForm(prefix="folio"),
+            DatosJuriFMIForm(prefix="juri"),
+            ValidacionExistenciaForm(prefix="validacion"),
+            EstadoAdquisicionForm(prefix="estado"),
+            SeguimientoForm(prefix="seguimiento"),
         ]
 
         context = {
@@ -145,35 +174,41 @@ def create_predio(request):
             "form_juri": forms[2],
             "form_validacion": forms[3],
             "form_estado": forms[4],
-            "form_seguimiento": forms[5]
+            "form_seguimiento": forms[5],
         }
 
-        return render(request, 'create_predio.html', context)
-
+        return render(request, "create_predio.html", context)
 
 
 def home(request):
-    return render(request, 'home.html')
+    return render(request, "home.html")
 
 
 @login_required
 def signout(request):
     logout(request)
-    return redirect('home')
+    return redirect("home")
 
 
 def signin(request):
-    if request.method == 'GET':
-        return render(request, 'signin.html', {"form": AuthenticationForm})
+    if request.method == "GET":
+        return render(request, "signin.html", {"form": AuthenticationForm})
     else:
         user = authenticate(
-            request, username=request.POST['username'], password=request.POST['password'])
-        
+            request,
+            username=request.POST["username"],
+            password=request.POST["password"],
+        )
+
         if user is None:
-            return render(request, 'signin.html', {
-                "form": AuthenticationForm, 
-                "error": "Username or password is incorrect."
-            })
+            return render(
+                request,
+                "signin.html",
+                {
+                    "form": AuthenticationForm,
+                    "error": "Username or password is incorrect.",
+                },
+            )
 
         login(request, user)
         today = timezone.now().date()
@@ -182,185 +217,196 @@ def signin(request):
             if predio.fecha_solicitud:
                 predio.ultima_fecha_acceso = today
                 predio.save()
-                print(f"Total predios encontrados para {user.username}: {predios.count()}")
-        return redirect('predios')
-    
+                print(
+                    f"Total predios encontrados para {user.username}: {predios.count()}"
+                )
+        return redirect("predios")
 
 
-@login_required(login_url='signin')
+@login_required(login_url="signin")
 def predio_detail(request, predio_id):
     predio = get_object_or_404(Predio, pk=predio_id)
     puede_editar = (
-        request.user.is_superuser or
-        request.user.is_staff or
-        request.user.groups.filter(name='oficina').exists()
+        request.user.is_superuser
+        or request.user.is_staff
+        or request.user.groups.filter(name="oficina").exists()
     )
 
-
-    if request.method == 'POST':
+    if request.method == "POST":
         forms = [
-            PrediosObjetoForm(request.POST, instance=predio, prefix='objeto'),
-            DatosFolioForm(request.POST, instance=predio, prefix='folio'),
-            DatosJuriFMIForm(request.POST, instance=predio, prefix='juri'),
-            ValidacionExistenciaForm(request.POST, instance=predio, prefix='validacion'),
-            EstadoAdquisicionForm(request.POST, instance=predio, prefix='estado'),
-            SeguimientoForm(request.POST, instance=predio, prefix='seguimiento')
+            PrediosObjetoForm(request.POST, instance=predio, prefix="objeto"),
+            DatosFolioForm(request.POST, instance=predio, prefix="folio"),
+            DatosJuriFMIForm(request.POST, instance=predio, prefix="juri"),
+            ValidacionExistenciaForm(
+                request.POST, instance=predio, prefix="validacion"
+            ),
+            EstadoAdquisicionForm(request.POST, instance=predio, prefix="estado"),
+            SeguimientoForm(request.POST, instance=predio, prefix="seguimiento"),
         ]
 
         if all(f.is_valid() for f in forms):
             for form in forms:
                 form.save()
-            return redirect('predios')
+            return redirect("predios")
         else:
-            context = {'error': 'Error al actualizar el predio.'}
+            context = {"error": "Error al actualizar el predio."}
     else:
         forms = [
-            PrediosObjetoForm(instance=predio, prefix='objeto'),
-            DatosFolioForm(instance=predio, prefix='folio'),
-            DatosJuriFMIForm(instance=predio, prefix='juri'),
-            ValidacionExistenciaForm(instance=predio, prefix='validacion'),
-            EstadoAdquisicionForm(instance=predio, prefix='estado'),
-            SeguimientoForm(instance=predio, prefix='seguimiento')
+            PrediosObjetoForm(instance=predio, prefix="objeto"),
+            DatosFolioForm(instance=predio, prefix="folio"),
+            DatosJuriFMIForm(instance=predio, prefix="juri"),
+            ValidacionExistenciaForm(instance=predio, prefix="validacion"),
+            EstadoAdquisicionForm(instance=predio, prefix="estado"),
+            SeguimientoForm(instance=predio, prefix="seguimiento"),
         ]
         context = {}
 
-    context.update({
-        'predio': predio,
-        'form_objeto': forms[0],
-        'form_folio': forms[1],
-        'form_juri': forms[2],
-        'form_validacion': forms[3],
-        'form_estado': forms[4],
-        'form_seguimiento': forms[5],
-        'puede_editar': puede_editar
-    })
+    context.update(
+        {
+            "predio": predio,
+            "form_objeto": forms[0],
+            "form_folio": forms[1],
+            "form_juri": forms[2],
+            "form_validacion": forms[3],
+            "form_estado": forms[4],
+            "form_seguimiento": forms[5],
+            "puede_editar": puede_editar,
+        }
+    )
 
-    return render(request, 'predio_detail.html', context)
+    return render(request, "predio_detail.html", context)
 
 
 @login_required
 def complete_predio(request, predio_id):
-    if request.method == 'POST':
+    if request.method == "POST":
         predio = get_object_or_404(Predio, pk=predio_id)
         predio.datecompleted = timezone.now()
         predio.save()
-        return redirect('predios')
+        return redirect("predios")
+
 
 @login_required
 def delete_predio(request, predio_id):
     predio = get_object_or_404(Predio, pk=predio_id)
-    if request.method == 'POST':
+    if request.method == "POST":
         predio.delete()
-        return redirect('predios')
-    return redirect('predio_detail', predio_id=predio_id)
-    
+        return redirect("predios")
+    return redirect("predio_detail", predio_id=predio_id)
+
 
 @csrf_exempt
 def cliente_dashboard(request):
     contexto = {}
 
-    # Si es POST, viene del formulario de consulta natural
     # Filtros GET
-    campo = request.GET.get('campo', '')
-    fmi = request.GET.get('fmi', '')
-    cod_sig = request.GET.get('cod_sig','')
-    proyecto = request.GET.get('proyecto', '')
-    fecha_inicio = request.GET.get('fecha_inicio', '')
-    fecha_fin = request.GET.get('fecha_fin', '')
-
     predios = Predio.objects.all()
 
-    if campo:
-        predios = predios.filter(campo__icontains=campo)
-    if fmi:
-        predios = predios.filter(fmi__icontains=fmi)
-    if proyecto:
-        predios = predios.filter(proyecto=proyecto)
+    # Obtener parámetros de filtro desde el request
+    importancia = request.GET.get("importancia")
+    cod_sig = request.GET.get("cod_sig", "")
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
+
+    # Filtrar por importancia si está especificado
+    if importancia == "importante":
+        predios = predios.filter(es_importante=True)
+    elif importancia == "normal":
+        predios = predios.filter(es_importante=False)
+
+    # Filtrar por rango de fechas si están especificadas
     if fecha_inicio:
         predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
     if fecha_fin:
         predios = predios.filter(fecha_solicitud__lte=fecha_fin)
+    # Filtrar por codigo SIG
     if cod_sig:
         predios = predios.filter(cod_sig=cod_sig)
 
-    # Gráfico circular
-    estado_counts = (
-        predios
-        .values('estado')
-        .annotate(total=Count('id'))
-        .order_by('-total')
-    )
+    # === GRÁFICO DE PASTEL: Solo estado = "encontrado" ===
+    encontrados = predios.filter(estado__iexact="encontrado").count()
+    no_encontrados = predios.exclude(estado__iexact="encontrado").count()
 
-    labels = [item['estado'] for item in estado_counts]
-    sizes = [item['total'] for item in estado_counts]
-    colors = ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d']
-
-    # Función para mostrar cantidad + porcentaje
-    def make_autopct(values):
-        def my_autopct(pct):
-            total = sum(values)
-            count = int(round(pct * total / 100.0))
-            return f'{pct:.1f}%\n({count})'
-        return my_autopct
+    labels_pie = ["Encontrado", "Otros"]
+    sizes_pie = [encontrados, no_encontrados]
+    colors_pie = ["#d95300", "#6c757d"]
 
     plt.figure(figsize=(6, 4))
     plt.pie(
-        sizes,
-        labels=labels,
-        colors=colors[:len(labels)],
-        autopct=make_autopct(sizes),
-        startangle=90
+        sizes_pie,
+        labels=labels_pie,
+        colors=colors_pie,
+        autopct="%1.1f%%",
+        startangle=90,
     )
-    plt.axis('equal')
-
+    plt.axis("equal")
     buffer = io.BytesIO()
-    plt.savefig(buffer, format='png')
+    plt.savefig(buffer, format="png")
     graphic = base64.b64encode(buffer.getvalue()).decode()
     buffer.close()
     plt.clf()
 
+    # === HISTOGRAMA: Conteo por estado ===
+    estado_counts = (
+        predios.values("estado").annotate(total=Count("id")).order_by("estado")
+    )
 
-    # Gráfico temporal
-    fechas_df = pd.DataFrame(predios.values('fecha_solicitud')).dropna()
-    fechas_df['fecha_solicitud'] = pd.to_datetime(fechas_df['fecha_solicitud'])
-    fechas_df['solo_fecha'] = fechas_df['fecha_solicitud'].dt.date
-
-    conteo_fechas = fechas_df['solo_fecha'].value_counts().sort_index()
+    estados = [
+        item["estado"] if item["estado"] else "Sin estado" for item in estado_counts
+    ]
+    totales = [item["total"] for item in estado_counts]
 
     plt.figure(figsize=(6, 4))
-    conteo_fechas.plot(kind='bar', color='#17a2b8')
-    plt.title('Solicitudes por Fecha')
-    plt.xlabel('Fecha')
-    plt.ylabel('Cantidad')
-    plt.xticks(rotation=45, ha='right')
+    plt.bar(estados, totales, color="#007bff")
+    plt.title("Conteo por Estado")
+    plt.xlabel("Estado")
+    plt.ylabel("Cantidad")
+    plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     buffer2 = io.BytesIO()
-    plt.savefig(buffer2, format='png')
-    grafico_fechas = base64.b64encode(buffer2.getvalue()).decode()
+    plt.savefig(buffer2, format="png")
+    grafico_estados = base64.b64encode(buffer2.getvalue()).decode()
     buffer2.close()
     plt.clf()
 
+    # === GRÁFICO TEMPORAL: Solicitudes por fecha ===
+    fechas_df = pd.DataFrame(predios.values("fecha_solicitud")).dropna()
+    fechas_df["fecha_solicitud"] = pd.to_datetime(fechas_df["fecha_solicitud"])
+    fechas_df["solo_fecha"] = fechas_df["fecha_solicitud"].dt.date
+    conteo_fechas = fechas_df["solo_fecha"].value_counts().sort_index()
 
-    # Últimos predios
-    ultimos_predios = predios.order_by('id')[:10]
+    plt.figure(figsize=(6, 4))
+    conteo_fechas.plot(kind="bar", color="#17a2b8")
+    plt.title("Solicitudes por Fecha")
+    plt.xlabel("Fecha")
+    plt.ylabel("Cantidad")
+    plt.xticks(rotation=45, ha="right")
+    plt.tight_layout()
+    buffer3 = io.BytesIO()
+    plt.savefig(buffer3, format="png")
+    grafico_fechas = base64.b64encode(buffer3.getvalue()).decode()
+    buffer3.close()
+    plt.clf()
 
-    contexto.update({
-        'graphic': graphic,
-        'grafico_fechas': grafico_fechas,
-        'ultimos_predios': ultimos_predios,
-        'campo': campo,
-        'fmi': fmi,
-        'proyecto': proyecto,
-        'fecha_inicio': fecha_inicio,
-        'fecha_fin': fecha_fin,
-    })
+    ultimos_predios = predios.order_by("id")[:10]
 
-    return render(request, 'dashboard.html', contexto)
+    contexto.update(
+        {
+            "graphic": graphic,
+            "grafico_estados": grafico_estados,
+            "grafico_fechas": grafico_fechas,
+            "ultimos_predios": ultimos_predios,
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+        }
+    )
+
+    return render(request, "dashboard.html", contexto)
 
 
-@login_required(login_url='signin')
+@login_required(login_url="signin")
 def descargar_excel(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         # Crear el libro y la hoja de Excel
         wb = Workbook()
         ws = wb.active
@@ -368,9 +414,16 @@ def descargar_excel(request):
 
         # Encabezados personalizados según los campos del modelo
         headers = [
-            "ID", "Proyecto", "FMI", "Nombre del Predio",
-            "Municipio", "Fecha del Documento", "Valor de Pago",
-            "Fecha de Pago", "Estado", "Responsable"
+            "ID",
+            "Proyecto",
+            "FMI",
+            "Nombre del Predio",
+            "Municipio",
+            "Fecha del Documento",
+            "Valor de Pago",
+            "Fecha de Pago",
+            "Estado",
+            "Responsable",
         ]
         ws.append(headers)
 
@@ -379,24 +432,26 @@ def descargar_excel(request):
 
         # Escribir los datos en la hoja
         for p in predios:
-            ws.append([
-                p.id,
-                p.proyecto,
-                p.fmi,
-                p.nom_predio,
-                p.municipio,
-                p.fecha_documento.strftime('%Y-%m-%d') if p.fecha_documento else '',
-                p.valor_pago,
-                p.fecha_pago.strftime('%Y-%m-%d') if p.fecha_pago else '',
-                p.estado,
-                p.responsable_adquisicion
-            ])
+            ws.append(
+                [
+                    p.id,
+                    p.proyecto,
+                    p.fmi,
+                    p.nom_predio,
+                    p.municipio,
+                    p.fecha_documento.strftime("%Y-%m-%d") if p.fecha_documento else "",
+                    p.valor_pago,
+                    p.fecha_pago.strftime("%Y-%m-%d") if p.fecha_pago else "",
+                    p.estado,
+                    p.responsable_adquisicion,
+                ]
+            )
 
         # Preparar la respuesta HTTP
         response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        response['Content-Disposition'] = 'attachment; filename=reporte_predios.xlsx'
+        response["Content-Disposition"] = "attachment; filename=reporte_predios.xlsx"
 
         # Guardar el Excel en la respuesta
         wb.save(response)

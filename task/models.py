@@ -74,6 +74,7 @@ class Predio(models.Model):
         ("EXPEDIENTE", "EXPEDIENTE"),
         ("RESOLUCIÓN", "RESOLUCIÓN"),
         ("SENTENCIA", "SENTENCIA"),
+        ("SIN INFORMACION", "SIN INFORMACION"),
     ]
     ESTADO_CHOICES = [
         ("CARGADO A OTRO PREDIO", "CARGADO A OTRO PREDIO"),
@@ -90,6 +91,7 @@ class Predio(models.Model):
         ("PENDIENTE POR SOLICITAR", "PENDIENTE POR SOLICITAR"),
         ("PENDIENTE VERIFICAR", "PENDIENTE VERIFICAR"),
         ("SOLICITADO", "SOLICITADO"),
+        ("NO ADQUIRIDO", "NO ADQUIRIDO"),
     ]
     SUB_ESTADO_COMPRA_CHOICES = [
         ("ADQUIRIDO PREDIO PROPIOS", "ADQUIRIDO PREDIO PROPIOS"),
@@ -99,6 +101,8 @@ class Predio(models.Model):
         ("SOLICITADO / CERTIFICADO NO EXISTE", "SOLICITADO / CERTIFICADO NO EXISTE"),
         ("SOLICITADO PREDIO PROPIOS", "SOLICITADO PREDIO PROPIOS"),
         ("SOLICITADO SERVIDUMBRES", "SOLICITADO SERVIDUMBRES"),
+        ("NO APLICA", "NO APLICA"),
+        ("PENDIENTE", "PENDIENTE"),
     ]
     ENVIO_OPEN_TEXT_CHOICES = [
         ("NO", "NO"),
@@ -124,7 +128,7 @@ class Predio(models.Model):
     ]
     PAQUETE_CHOISES = [
         ("PAQUETE 4", "PAQUETE 4"),
-        ("PAQUETE 6", "PAQUETE 6"),
+        ("PAQUETE 5", "PAQUETE 5"),
         ("SIN PAQUETE", "SIN PAQUETE"),
     ]
     ESTRATEGIA_CHOISES = [
@@ -133,35 +137,35 @@ class Predio(models.Model):
         ("NO APLICA", "NO APLICA"),
     ]
 
-    proyecto = models.CharField(max_length=16, choices=PROYECTO_CHOICES)
-    vigencia = models.CharField(max_length=4, choices=VIGENCIA_CHOICES)
-    gerencia = models.CharField(max_length=4, choices=GERENCIA_CHOICES)
+    proyecto = models.CharField(max_length=16, choices=PROYECTO_CHOICES, null=True, blank=True)
+    vigencia = models.CharField(max_length=4, choices=VIGENCIA_CHOICES, null=True, blank=True)
+    gerencia = models.CharField(max_length=4, choices=GERENCIA_CHOICES, null=True, blank=True)
     categoria_predio_fmi = models.CharField(
-        max_length=100, choices=CATEGORIA_PREDIO_FMI_CHOICES
+        max_length=100, choices=CATEGORIA_PREDIO_FMI_CHOICES, null=True, blank=True
     )
     estado_folio_matricula = models.CharField(
-        max_length=100, choices=ESTADO_FOLIO_CHOICES
+        max_length=100, choices=ESTADO_FOLIO_CHOICES, null=True, blank=True
     )
-    categoria_fmi = models.CharField(max_length=50, choices=CATEGORIA_FMI_CHOICES)
-    tipo_documental = models.CharField(max_length=50, choices=TIPO_DOCUMENTAL_CHOICES)
-    estado = models.CharField(max_length=50, choices=ESTADO_CHOICES)
-    estado_compra = models.CharField(max_length=50, choices=ESTADO_COMPRA_CHOICES)
+    categoria_fmi = models.CharField(max_length=50, choices=CATEGORIA_FMI_CHOICES, null=True, blank=True)
+    tipo_documental = models.CharField(max_length=50, choices=TIPO_DOCUMENTAL_CHOICES, null=True, blank=True)
+    estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, null=True, blank=True)
+    estado_compra = models.CharField(max_length=50, choices=ESTADO_COMPRA_CHOICES, null=True, blank=True)
     sub_estado_compra = models.CharField(
-        max_length=50, choices=SUB_ESTADO_COMPRA_CHOICES
+        max_length=50, choices=SUB_ESTADO_COMPRA_CHOICES, null=True, blank=True
     )
-    envio_open_text = models.CharField(max_length=50, choices=ENVIO_OPEN_TEXT_CHOICES)
-    accion_tecnica = models.CharField(max_length=50, choices=ACCION_TECNICA_CHOICES)
+    envio_open_text = models.CharField(max_length=50, choices=ENVIO_OPEN_TEXT_CHOICES, null=True, blank=True)
+    accion_tecnica = models.CharField(max_length=50, choices=ACCION_TECNICA_CHOICES, null=True, blank=True)
     fecha_solicitud = models.DateField(null=True, blank=True)
     fecha_respuesta = models.DateField(null=True, blank=True)
     datecompleted = models.DateTimeField(null=True, blank=True)
-    es_importante = models.BooleanField(default=False)
+    es_importante = models.BooleanField(default=False, null=True, blank=True)
     fecha_reiteracion = models.DateField(null=True, blank=True)
     ultima_fecha_acceso = models.DateField(null=True, blank=True)
     campo = models.CharField(max_length=50, null=True, blank=True)
     cod_sig = models.CharField(max_length=30, null=True, blank=True)
-    fmi = models.CharField(max_length=10, default="00000")
+    fmi = models.CharField(max_length=10, default="00000", null=True, blank=True)
     ced_catastral = models.CharField(max_length=31, null=True, blank=True)
-    nom_predio = models.CharField(max_length=50, default="Sin Informacion")
+    nom_predio = models.CharField(max_length=50, default="Sin Informacion", null=True, blank=True)
     documento = models.CharField(max_length=15, null=True, blank=True)
     fecha_documento = models.DateField(null=True, blank=True)
     entidad = models.CharField(max_length=100, null=True, blank=True)
@@ -171,10 +175,10 @@ class Predio(models.Model):
     cod_sig_opentext = models.CharField(max_length=30, null=True, blank=True)
     cod_sig_asociado = models.CharField(max_length=30, null=True, blank=True)
     fecha_pago = models.DateField(null=True, blank=True)
-    valor_pago = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    valor_pago = models.DecimalField(max_digits=20, decimal_places=2, default=0, null=True, blank=True)
     fecha_adquisicion = models.DateField(null=True, blank=True)
     estrategia = models.CharField(
-        max_length=50, choices=ESTRATEGIA_CHOISES, default="NO APLICA"
+        max_length=50, choices=ESTRATEGIA_CHOISES, default="NO APLICA", null=True, blank=True
     )
     responsable_adquisicion = models.CharField(max_length=50, null=True, blank=True)
     link_sharepoint = models.CharField(null=True, blank=True)
@@ -184,10 +188,10 @@ class Predio(models.Model):
     cod_especificacion = models.IntegerField(null=True, blank=True)
     adquirir = models.BooleanField(default=True)
     repetido = models.CharField(
-        max_length=50, choices=REPETIDO_CHOISES, default="NO APLICA"
+        max_length=50, choices=REPETIDO_CHOISES, default="NO APLICA", null=True, blank=True
     )
     paquete = models.CharField(
-        max_length=30, choices=PAQUETE_CHOISES, default="PAQUETE 4"
+        max_length=30, choices=PAQUETE_CHOISES, default="PAQUETE 4", null=True, blank=True
     )
 
     user = models.ForeignKey(

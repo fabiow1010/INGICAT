@@ -4,12 +4,13 @@
   .container-grid {
     display: grid;
     grid-template-columns: 0.7fr 1.3fr 1fr;
-    grid-template-rows: 1.4fr 0.6fr;
+    grid-template-rows: 2fr 0.6fr;
     gap: 0px 0px;
     grid-auto-flow: row;
     grid-template-areas:
       "control-panel table table"
-      "control-panel done histogram";
+      "control-panel histogram done"
+      "control-panel histogram histogram2";
     height: 100vh;
     padding: 20px;
   }
@@ -24,10 +25,15 @@
   .table {
     grid-area: table;
     background-color: #e3f2fd;
-    padding: 10px;
+    padding: 0;
     overflow-y: auto;
   }
-
+  .table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #e3f2fd;
+    z-index: 1;
+  }
   .done {
     grid-area: done;
     background-color: #d1e7dd;
@@ -36,6 +42,11 @@
 
   .histogram {
     grid-area: histogram;
+    background-color: #fff3cd;
+    padding: 10px;
+  }
+  .histogram2 {
+    grid-area: histogram2;
     background-color: #fff3cd;
     padding: 10px;
   }
@@ -53,98 +64,104 @@
 <main class="container my-4">
   <h2 class="text-center mb-3 border border">Dashboard de Predios</h2>
   <div class="container-grid">
-  <!-- Filtros -->
-  <!-- Panel de control: Filtros -->
-  <div class="control-panel">
-    <h4>Filtros</h4>
-    <form method="GET">
-      <ul class="control-list">
-        <li>
-          <label>Importancia</label>
-          <select name="importancia" class="form-select form-select-sm">
-            <option value="">Todos</option>
-            <option value="importante" {% if request.GET.importancia == 'importante' %}selected{% endif %}>Prioridad</option>
-            <option value="normal" {% if request.GET.importancia == 'normal' %}selected{% endif %}>Normal</option>
-          </select>
-        </li>
-        <li>
-          <label>Código SIG</label>
-          <input type="text" name="cod_sig" class="form-control form-control-sm" value="{{ request.GET.cod_sig }}">
-        </li>
-        <li>
-          <label>Fecha Solicitud</label>
-          <input type="date" name="fecha_inicio" class="form-control form-control-sm" value="{{ request.GET.fecha_inicio }}">
-        </li>
-        <li>
-          <label>Fecha Fin</label>
-          <input type="date" name="fecha_fin" class="form-control form-control-sm" value="{{ request.GET.fecha_fin }}">
-        </li>
-        <li class="mt-2 d-grid gap-2">
-          <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-          <a href="{% url 'cliente_dashboard' %}" class="btn btn-secondary btn-sm">Restablecer</a>
-        </li>
-      </ul>
-    </form>
-     <form method="post" action="{% url 'descargar_excel' %}" class="mt-4">
-      {% csrf_token %}
-      <div class="d-flex justify-content-center">
-        <button type="submit" class="btn btn-primary">
-          Descargar informe de Excel
-        </button>
-      </div>
-    </form>
-  </div>
-  <!-- Tabla Responsiva -->
-  <div class=" table table-responsive">
-    <table class="table table-bordered table-striped table-hover">
-      <thead class="table-primary">
-        <tr>
-          <th>Id</th>
-          <th>Proyecto</th>
-          <th>Fecha Solicitud</th>
-          <th>Gerencia</th>
-          <th>Código SIG</th>
-          <th>Entidad</th>
-          <th>Prioridad</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for predio in ultimos_predios %}
-        <tr {% if predio.es_importante %} class="table-danger" {% endif %}>
-          <td><a href="{% url 'predio_detail' predio.id %}">{{ predio.id }}</a></td>
-          <td>{{ predio.proyecto }}</td>
-          <td>{{ predio.fecha_solicitud }}</td>
-          <td>{{ predio.gerencia }}</td>
-          <td>{{ predio.cod_sig }}</td>
-          <td>{{ predio.entidad }}</td>
-          <td>
-            {% if predio.es_importante %}
+    <!-- Filtros -->
+    <!-- Panel de control: Filtros -->
+    <div class="control-panel">
+      <h4>Filtros</h4>
+      <form method="GET">
+        <ul class="control-list">
+          <li>
+            <label>Importancia</label>
+            <select name="importancia" class="form-select form-select-sm">
+              <option value="">Todos</option>
+              <option value="importante" {% if request.GET.importancia == 'importante' %}selected{% endif %}>Prioridad</option>
+              <option value="normal" {% if request.GET.importancia == 'normal' %}selected{% endif %}>Normal</option>
+            </select>
+          </li>
+          <li>
+            <label>Código SIG</label>
+            <input type="text" name="cod_sig" class="form-control form-control-sm" value="{{ request.GET.cod_sig }}">
+          </li>
+          <li>
+            <label>Fecha Solicitud</label>
+            <input type="date" name="fecha_inicio" class="form-control form-control-sm"
+              value="{{ request.GET.fecha_inicio }}">
+          </li>
+          <li>
+            <label>Fecha Fin</label>
+            <input type="date" name="fecha_fin" class="form-control form-control-sm"
+              value="{{ request.GET.fecha_fin }}">
+          </li>
+          <li class="mt-2 d-grid gap-2">
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+            <a href="{% url 'cliente_dashboard' %}" class="btn btn-secondary btn-sm">Restablecer</a>
+          </li>
+        </ul>
+      </form>
+      <form method="post" action="{% url 'descargar_excel' %}" class="mt-4">
+        {% csrf_token %}
+        <div class="d-flex justify-content-center">
+          <button type="submit" class="btn btn-primary">
+            Descargar informe de Excel
+          </button>
+        </div>
+      </form>
+    </div>
+    <!-- Tabla Responsiva -->
+    <div class=" table table-responsive">
+      <table class="table table-bordered table-striped table-hover">
+        <thead class="table-primary text-center aling-center">
+          <tr>
+            <th>Id</th>
+            <th>Proyecto</th>
+            <th>Fecha Solicitud</th>
+            <th>Gerencia</th>
+            <th>Código SIG</th>
+            <th>Entidad</th>
+            <th>Prioridad</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for predio in ultimos_predios %}
+          <tr {% if predio.es_importante %} class="table-danger" {% endif %}>
+            <td><a href="{% url 'predio_detail' predio.id %}">{{ predio.id }}</a></td>
+            <td>{{ predio.proyecto }}</td>
+            <td>{{ predio.fecha_solicitud }}</td>
+            <td>{{ predio.gerencia }}</td>
+            <td>{{ predio.cod_sig }}</td>
+            <td>{{ predio.entidad }}</td>
+            <td>
+              {% if predio.es_importante %}
               <span class="badge bg-danger">¡Prioridad!</span>
-            {% else %}
+              {% else %}
               <span class="badge bg-success">Normal</span>
-            {% endif %}
-          </td>
-          <td>
-            <a href="{% url 'predio_detail' predio.id %}" class="btn btn-info btn-sm">Ver</a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'predio_detail' predio.id %}" class="btn btn-info btn-sm">Ver</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-  <!-- Gráficos -->
-  <div class="done text-center mb-5">
+    <!-- Gráficos -->
+    <div class="done text-center mb-5">
 
       <h5>Estado de Busqueda</h5>
       <img src="data:image/png;base64,{{ graphic }}" class="img-fluid rounded shadow" alt="Gráfico de estados">
 
-  </div>
-  <div class="histogram text-center aling-center mb-5">
-    <h5>Distribución Temporal de Solicitudes</h5>
-    <img src="data:image/png;base64,{{ grafico_fechas }}" class="img-fluid rounded shadow" alt="Gráfico de fechas">
-  </div>
+    </div>
+    <div class="histogram text-center aling-center mb-5">
+      <h5>Estado de Busqueda</h5>
+      <img src="data:image/png;base64,{{ grafico_estados }}" class="img-fluid rounded shadow" alt="Gráfico de estados">
+    </div>
+    <div class="histogram2 text-center aling-center mb-5">
+      <h5>Solicitudes por Fechas</h5>
+      <img src="data:image/png;base64,{{ grafico_fechas }}" class="img-fluid rounded shadow" alt="Gráfico de fechas">
+    </div>
 
 </main>
 
