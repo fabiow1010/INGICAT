@@ -199,8 +199,8 @@ class Predio(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if not self.ultima_fecha_acceso:
-            self.ultima_fecha_acceso = timezone.now().date()
+
+        self.ultima_fecha_acceso = timezone.now().date()
 
         if self.fecha_solicitud:
             if self.fecha_reiteracion:
@@ -208,7 +208,9 @@ class Predio(models.Model):
                     self.ultima_fecha_acceso - self.fecha_reiteracion
                 ).days
             else:
-                dias_diferencia = (self.ultima_fecha_acceso - self.fecha_solicitud).days
+                dias_diferencia = (
+                    self.ultima_fecha_acceso - self.fecha_solicitud
+                ).days
             self.es_importante = dias_diferencia > 8
         else:
             self.es_importante = True
