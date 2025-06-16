@@ -388,7 +388,7 @@ def cliente_dashboard(request):
     buffer3.close()
     plt.clf()
 
-    ultimos_predios = predios.order_by("id")[:10]
+    ultimos_predios = predios.order_by("fecha_solicitud")[:10]
 
     contexto.update(
         {

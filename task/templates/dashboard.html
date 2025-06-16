@@ -3,16 +3,18 @@
 <style>
   .container-grid {
     display: grid;
-    grid-template-columns: 0.7fr 1.3fr 1fr;
-    grid-template-rows: 2fr 0.6fr;
-    gap: 0px 0px;
+    grid-template-columns: 0.5fr 1fr 1.7fr;
+    grid-template-rows: 0.5fr 0.5fr 0.5fr;
+    gap: 10px 10px;
     grid-auto-flow: row;
     grid-template-areas:
-      "control-panel table table"
-      "control-panel histogram done"
-      "control-panel histogram histogram2";
-    height: 100vh;
-    padding: 20px;
+    "control-panel histogram table"
+    "control-panel histogram2 table"
+    "control-panel done table"
+    
+    ;
+    height: auto;
+    padding: 10px;
   }
 
   .control-panel {
@@ -27,6 +29,7 @@
     background-color: #e3f2fd;
     padding: 0;
     overflow-y: auto;
+    max-width: 1fr;
   }
   .table thead th {
     position: sticky;
