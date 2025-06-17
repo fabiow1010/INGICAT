@@ -25,12 +25,17 @@
     text-align: center;
   }
 
-  .descripcion {
-    grid-area: descripcion;
-    background-color: #c47132;
-    padding: 1rem;
-    border-radius: 0.5rem;
-  }
+.descripcion {
+  grid-area: descripcion;
+  background-color: #f1eeed;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
 
   .Contenido {
     grid-area: Contenido;
@@ -47,8 +52,8 @@
   </div>
 
   <div class="descripcion border img-fluid text-center">
-    <img src="{% static 'img/ingicat.jpg' %}"  class="img-fluid">
-    <p class="text-center">Sistema de Información Integrado de Catastro</p>
+    <img src="{% static 'img/ingicat_512.jpg' %}" alt="Logo SIICA" class="img-fluid mx-auto d-block">
+
   </div>
 
   <div class="Contenido border text-center">
@@ -60,7 +65,7 @@
         El <b>SIICA</b> está concebido como una herramienta tecnológica que permite consolidar, estandarizar y gestionar
         de
         forma eficiente la información catastral de bienes inmuebles con depósitos judiciales, integrando componentes
-        físicos, jurídicos y geográficos en una plataforma unificada, propuesta surgida en el marco de la modalidad dea
+        físicos, jurídicos y geográficos en una plataforma unificada, propuesta surgida en el marco de la modalidad del
         trabajo de grado para <b>Ingeniería Catastral y Geodesia</b> de los estudiantes: <br> Noath Mateo Muñoz
         Marroquin, Fabian Andres Fernandez Castiblanco .
       </p>

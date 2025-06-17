@@ -1,3 +1,5 @@
+{% load static %}
+
 <style>
   .navbar-carmesi {
     background-color: #960018 !important; /* rojo carmesí */
@@ -20,10 +22,12 @@
 
 <nav class="navbar navbar-expand-lg navbar-carmesi">
   <div class="container">
-    <a class="navbar-brand" href="/">
+   <a class="navbar-brand d-flex align-items-center gap-2" href="/">
       {% if user.is_authenticated %}
-        Bienvenido {{ user.username }}
+        <img src="{% static 'img/logo.jpg' %}" alt="Usuario" width="30" height="30" class="rounded-circle">
+      Bienvenido {{ user.username }}
       {% else %}
+        <img src="{% static 'img/logo.jpg' %}" alt="Usuario" width="30" height="30" class="rounded-circle">
         INGICAT S.A.S
       {% endif %}
     </a>

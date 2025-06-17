@@ -34,4 +34,4 @@ urlpatterns = [
     path('predio/<int:predio_id>/delete', views.delete_predio, name='delete_predio'),
     path('dashboard/', views.cliente_dashboard, name='cliente_dashboard'),
     path('descargar_excel/', views.descargar_excel, name='descargar_excel'),
-    ]+ static(settings.STATIC_URL, document_root=os.path.join(settings.BASE_DIR, 'static'))
+    ]+ static(settings.STATIC_URL, document_root=os.path.join(settings.BASE_DIR, 'staticfiles'))

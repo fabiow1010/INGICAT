@@ -3,7 +3,7 @@
 <style>
   .container-grid {
     display: grid;
-    grid-template-columns: 0.5fr 1fr 1.7fr;
+    grid-template-columns: 0.5fr 0.8fr 1.9fr;
     grid-template-rows: 0.5fr 0.5fr 0.5fr;
     gap: 10px 10px;
     grid-auto-flow: row;
@@ -65,7 +65,7 @@
   }
 </style>
 <main class="container my-4">
-  <h2 class="text-center mb-3 border border">Dashboard de Predios</h2>
+  <h2 class="text-center mb-3 border border">Predios ECOPETROL</h2>
   <div class="container-grid">
     <!-- Filtros -->
     <!-- Panel de control: Filtros -->
@@ -116,7 +116,7 @@
         <thead class="table-primary text-center aling-center">
           <tr>
             <th>Id</th>
-            <th>Proyecto</th>
+            <th>Gestión</th>
             <th>Fecha Solicitud</th>
             <th>Gerencia</th>
             <th>Código SIG</th>
@@ -153,16 +153,16 @@
     <!-- Gráficos -->
     <div class="done text-center mb-5">
 
-      <h5>Estado de Busqueda</h5>
+      <h5>DEPÓSITOS JUDICIALES</h5>
       <img src="data:image/png;base64,{{ graphic }}" class="img-fluid rounded shadow" alt="Gráfico de estados">
 
     </div>
     <div class="histogram text-center aling-center mb-5">
-      <h5>Estado de Busqueda</h5>
+      <h5>ESTADO</h5>
       <img src="data:image/png;base64,{{ grafico_estados }}" class="img-fluid rounded shadow" alt="Gráfico de estados">
     </div>
     <div class="histogram2 text-center aling-center mb-5">
-      <h5>Solicitudes por Fechas</h5>
+      <h5>DEPÓSITOS JUDICIALES </h5>
       <img src="data:image/png;base64,{{ grafico_fechas }}" class="img-fluid rounded shadow" alt="Gráfico de fechas">
     </div>
 
