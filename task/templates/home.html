@@ -1,5 +1,7 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 {% block content %}
+{% load static %}
+
 <style>
   .container {
     border-radius: 1rem;
@@ -16,8 +18,8 @@
 
   .Titulos {
     grid-area: Titulos;
-    background-color: #b02d1c; 
-    padding: 1rem;  
+    background-color: #b02d1c;
+    padding: 1rem;
     border-radius: 0.5rem;
     color: white;
     text-align: center;
@@ -25,14 +27,14 @@
 
   .descripcion {
     grid-area: descripcion;
-    background-color: #c47132; 
+    background-color: #c47132;
     padding: 1rem;
     border-radius: 0.5rem;
   }
 
   .Contenido {
     grid-area: Contenido;
-    background-color: #d6f4fc; 
+    background-color: #d6f4fc;
     padding: 1rem;
     border-radius: 0.5rem;
   }
@@ -44,27 +46,32 @@
     <h4 class="text-center">Proyecto de Gestión de Información Catastral <b>SIICA</b></h4>
   </div>
 
-  <div class="descripcion border text-center">
-    <p>
- 
-    </p>
+  <div class="descripcion border img-fluid text-center">
+    <img src="{% static 'img/ingicat.jpg' %}"  class="img-fluid">
+    <p class="text-center">Sistema de Información Integrado de Catastro</p>
   </div>
 
   <div class="Contenido border text-center">
     <div class="text-center">
       <p>
-      Poryecto de gestión de información catastral para la empresa Ingicat S.A.S,
-      desarrollado por el equipo de trabajo de la Universidad Distrital Francisco Jose de Caldas,
-      sede de ingeniería, en el marco de la modalidad de trabajo de grado para <b>Ingeniería Catastral y Geodesia</b>.
-           </p>
+        Poryecto de gestión de información catastral para la empresa <b>Ingicat S.A.S</b>,
+        desarrollado en el marco de los procesos de Catastro de Infraestructura y Saneamiento Jurídico de <b>Ecopetrol
+          S.A.</b>
+        El <b>SIICA</b> está concebido como una herramienta tecnológica que permite consolidar, estandarizar y gestionar
+        de
+        forma eficiente la información catastral de bienes inmuebles con depósitos judiciales, integrando componentes
+        físicos, jurídicos y geográficos en una plataforma unificada, propuesta surgida en el marco de la modalidad dea
+        trabajo de grado para <b>Ingeniería Catastral y Geodesia</b> de los estudiantes: <br> Noath Mateo Muñoz
+        Marroquin, Fabian Andres Fernandez Castiblanco .
+      </p>
 
       {% if user.is_authenticated %}
-        <a class="btn btn-primary" href="/predios/" title="Empezar Gestión">Empezar</a> 
-      {% else %} 
-        <a class="btn btn-primary" href="/signin/"  title="Iniciar Sesión">Iniciar Sesión</a> 
-        {% if user.is_superuser %}
-          <a class="btn btn-primary" href="/signup/" title="Registrar Nuevo Usuario">Registrar</a>
-        {% endif %}
+      <a class="btn btn-primary" href="/predios/" title="Empezar Gestión">Empezar</a>
+      {% else %}
+      <a class="btn btn-primary" href="/signin/" title="Iniciar Sesión">Iniciar Sesión</a>
+      {% if user.is_superuser %}
+      <a class="btn btn-primary" href="/signup/" title="Registrar Nuevo Usuario">Registrar</a>
+      {% endif %}
       {% endif %}
     </div>
   </div>
