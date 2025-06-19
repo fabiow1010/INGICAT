@@ -308,20 +308,23 @@ def cliente_dashboard(request):
     fecha_inicio = request.GET.get("fecha_inicio")
     fecha_fin = request.GET.get("fecha_fin")
 
-    # Filtrar por importancia si está especificado
+    # Aplicar filtros
     if importancia == "importante":
         predios = predios.filter(es_importante=True)
     elif importancia == "normal":
         predios = predios.filter(es_importante=False)
 
-    # Filtrar por rango de fechas si están especificadas
     if fecha_inicio:
         predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
     if fecha_fin:
         predios = predios.filter(fecha_solicitud__lte=fecha_fin)
-    # Filtrar por codigo SIG
     if cod_sig:
         predios = predios.filter(cod_sig=cod_sig)
+
+    # Si no hay registros después de los filtros, mostrar mensaje y retornar
+    if not predios.exists():
+        contexto["mensaje"] = "No se encontraron registros que cumplan los filtros seleccionados."
+        return render(request, "dashboard.html", contexto)
 
     # === GRÁFICO DE PASTEL: Solo estado = "encontrado" ===
     encontrados = predios.filter(estado__iexact="encontrado").count()
@@ -429,8 +432,8 @@ def descargar_excel(request):
                 # Si es una fecha
                 if hasattr(valor, 'strftime'):
                     valor = valor.strftime('%Y-%m-%d')
-                elif isinstance(valor, Model):  # Omitir otros objetos complejos
-                    valor = str(valor)  # O puedes poner valor = '' si no quieres mostrar nada
+                elif isinstance(valor, Model): 
+                    valor = str(valor) 
                 fila.append(valor)
             ws.append(fila)
 
