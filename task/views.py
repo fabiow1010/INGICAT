@@ -32,6 +32,31 @@ from openpyxl import Workbook
 from django.http import HttpResponse
 from django.db.models import Model
 # Create your views here.
+from django.db.models import Q
+
+def filtros(request):
+    importancia = request.GET.get("importancia")
+    cod_sig = request.GET.get("cod_sig", "")
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
+
+    query = Q()
+    if importancia == "importante":
+        query |= Q(es_importante=True)
+    elif importancia == "normal":
+        query |= Q(es_importante=False)
+
+    if fecha_inicio:
+        query |= Q(fecha_solicitud__gte=fecha_inicio)
+    if fecha_fin:
+        query |= Q(fecha_solicitud__lte=fecha_fin)
+    if cod_sig:
+        query |= Q(cod_sig=cod_sig)
+
+    predios = Predio.objects.filter(query)
+
+    return predios, fecha_inicio, fecha_fin
+
 
 
 @login_required(login_url="signin")
@@ -298,28 +323,8 @@ def delete_predio(request, predio_id):
 @csrf_exempt
 def cliente_dashboard(request):
     contexto = {}
-
-    # Filtros GET
-    predios = Predio.objects.all()
-
-    # Obtener parámetros de filtro desde el request
-    importancia = request.GET.get("importancia")
-    cod_sig = request.GET.get("cod_sig", "")
-    fecha_inicio = request.GET.get("fecha_inicio")
-    fecha_fin = request.GET.get("fecha_fin")
-
-    # Aplicar filtros
-    if importancia == "importante":
-        predios = predios.filter(es_importante=True)
-    elif importancia == "normal":
-        predios = predios.filter(es_importante=False)
-
-    if fecha_inicio:
-        predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
-    if fecha_fin:
-        predios = predios.filter(fecha_solicitud__lte=fecha_fin)
-    if cod_sig:
-        predios = predios.filter(cod_sig=cod_sig)
+    # Filtros GET usando la función filtros
+    predios, fecha_inicio, fecha_fin = filtros(request)
 
     # Si no hay registros después de los filtros, mostrar mensaje y retornar
     if not predios.exists():
@@ -444,3 +449,4 @@ def descargar_excel(request):
         response["Content-Disposition"] = "attachment; filename=reporte_predios.xlsx"
         wb.save(response)
         return response
+
