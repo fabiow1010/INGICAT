@@ -389,7 +389,7 @@ def cliente_dashboard(request):
     buffer3.close()
     plt.clf()
 
-    ultimos_predios = predios.order_by("-fecha_solicitud")[:10000]
+    ultimos_predios = predios.order_by("-fecha_solicitud")[:1000]
 
     contexto = {
         "graphic": graphic,
