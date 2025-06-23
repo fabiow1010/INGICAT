@@ -8,10 +8,10 @@
     gap: 10px 10px;
     grid-auto-flow: row;
     grid-template-areas:
-    "control-panel histogram table"
-    "control-panel histogram2 table"
-    "control-panel done table"
-    
+      "control-panel histogram table"
+      "control-panel histogram2 table"
+      "control-panel done table"
+
     ;
     height: auto;
     padding: 10px;
@@ -22,6 +22,7 @@
     background-color: #f1f1f1;
     padding: 10px;
     overflow-y: auto;
+    max-width: min-content;
   }
 
   .table {
@@ -30,13 +31,17 @@
     padding: 0;
     overflow-y: auto;
     max-width: 1fr;
+    min-height: 0.5fr;
+    max-height: 800px;
   }
+
   .table thead th {
     position: sticky;
     top: 0;
     background-color: #e3f2fd;
     z-index: 1;
   }
+
   .done {
     grid-area: done;
     background-color: #d1e7dd;
@@ -48,6 +53,7 @@
     background-color: #fff3cd;
     padding: 10px;
   }
+
   .histogram2 {
     grid-area: histogram2;
     background-color: #fff3cd;
@@ -75,25 +81,24 @@
         <ul class="control-list">
           <li>
             <label>Importancia</label>
-            <select name="importancia" class="form-select form-select-sm">
+            <label for="importancia" class="form-label">Importancia</label>
+            <select name="importancia" class="form-select">
               <option value="">Todos</option>
-              <option value="importante" {% if request.GET.importancia == 'importante' %}selected{% endif %}>Prioridad</option>
-              <option value="normal" {% if request.GET.importancia == 'normal' %}selected{% endif %}>Normal</option>
+              <option value="importante" {% if importancia == "importante" %}selected{% endif %}>Prioridad</option>
+              <option value="normal" {% if importancia == "normal" %}selected{% endif %}>Normal</option>
             </select>
           </li>
           <li>
             <label>Código SIG</label>
-            <input type="text" name="cod_sig" class="form-control form-control-sm" value="{{ request.GET.cod_sig }}">
+            <input type="text" name="cod_sig" class="form-control form-control-sm" value="{{ cod_sig }}">
           </li>
           <li>
             <label>Fecha Solicitud</label>
-            <input type="date" name="fecha_inicio" class="form-control form-control-sm"
-              value="{{ request.GET.fecha_inicio }}">
+            <input type="date" name="fecha_inicio" class="form-control form-control-sm" value="{{ fecha_inicio }}">
           </li>
           <li>
             <label>Fecha Fin</label>
-            <input type="date" name="fecha_fin" class="form-control form-control-sm"
-              value="{{ request.GET.fecha_fin }}">
+            <input type="date" name="fecha_fin" class="form-control form-control-sm" value="{{ fecha_fin }}">
           </li>
           <li class="mt-2 d-grid gap-2">
             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>

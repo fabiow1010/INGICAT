@@ -31,8 +31,8 @@ import xlsxwriter
 from openpyxl import Workbook
 from django.http import HttpResponse
 from django.db.models import Model
-# Create your views here.
 from django.db.models import Q
+# Create your views here.
 
 def filtros(request):
     importancia = request.GET.get("importancia")
@@ -40,21 +40,21 @@ def filtros(request):
     fecha_inicio = request.GET.get("fecha_inicio")
     fecha_fin = request.GET.get("fecha_fin")
 
-    query = Q()
+    query = Q()  # Por defecto es True, lo vamos a combinar con AND
+
     if importancia == "importante":
-        query |= Q(es_importante=True)
+        query &= Q(es_importante=True)
     elif importancia == "normal":
-        query |= Q(es_importante=False)
+        query &= Q(es_importante=False)
 
     if fecha_inicio:
-        query |= Q(fecha_solicitud__gte=fecha_inicio)
+        query &= Q(fecha_solicitud__gte=fecha_inicio)
     if fecha_fin:
-        query |= Q(fecha_solicitud__lte=fecha_fin)
+        query &= Q(fecha_solicitud__lte=fecha_fin)
     if cod_sig:
-        query |= Q(cod_sig=cod_sig)
+        query &= Q(cod_sig__icontains=cod_sig)  # Mejora: búsqueda parcial y sin distinción de mayúsculas
 
     predios = Predio.objects.filter(query)
-
     return predios, fecha_inicio, fecha_fin
 
 
@@ -319,16 +319,23 @@ def delete_predio(request, predio_id):
 
 @csrf_exempt
 def cliente_dashboard(request):
-    contexto = {}
-    # Filtros GET usando la función filtros
+    mensaje = ""
+    importancia = request.GET.get("importancia", "")
+    cod_sig = request.GET.get("cod_sig", "")
+
     predios, fecha_inicio, fecha_fin = filtros(request)
 
-    # Si no hay registros después de los filtros, mostrar mensaje y retornar
     if not predios.exists():
-        contexto["mensaje"] = "No se encontraron registros que cumplan los filtros seleccionados."
+        contexto = {
+            "mensaje": "No se encontraron registros que cumplan los filtros seleccionados.",
+            "importancia": importancia,
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "predios": [],
+        }
         return render(request, "dashboard.html", contexto)
 
-    # === GRÁFICO DE PASTEL: Solo estado = "encontrado" ===
+    # === GRÁFICO DE PASTEL ===
     encontrados = predios.filter(estado__iexact="encontrado").count()
     no_encontrados = predios.exclude(estado__iexact="encontrado").count()
 
@@ -337,13 +344,7 @@ def cliente_dashboard(request):
     colors_pie = ["#d95300", "#6c757d"]
 
     plt.figure(figsize=(6, 4))
-    plt.pie(
-        sizes_pie,
-        labels=labels_pie,
-        colors=colors_pie,
-        autopct="%1.1f%%",
-        startangle=90,
-    )
+    plt.pie(sizes_pie, labels=labels_pie, colors=colors_pie, autopct="%1.1f%%", startangle=90)
     plt.axis("equal")
     buffer = io.BytesIO()
     plt.savefig(buffer, format="png")
@@ -351,14 +352,9 @@ def cliente_dashboard(request):
     buffer.close()
     plt.clf()
 
-    # === HISTOGRAMA: Conteo por estado ===
-    estado_counts = (
-        predios.values("estado").annotate(total=Count("id")).order_by("estado")
-    )
-
-    estados = [
-        item["estado"] if item["estado"] else "Sin estado" for item in estado_counts
-    ]
+    # === HISTOGRAMA: por estado ===
+    estado_counts = predios.values("estado").annotate(total=Count("id")).order_by("estado")
+    estados = [item["estado"] if item["estado"] else "Sin estado" for item in estado_counts]
     totales = [item["total"] for item in estado_counts]
 
     plt.figure(figsize=(6, 4))
@@ -374,7 +370,7 @@ def cliente_dashboard(request):
     buffer2.close()
     plt.clf()
 
-    # === GRÁFICO TEMPORAL: Solicitudes por fecha ===
+    # === GRÁFICO TEMPORAL ===
     fechas_df = pd.DataFrame(predios.values("fecha_solicitud")).dropna()
     fechas_df["fecha_solicitud"] = pd.to_datetime(fechas_df["fecha_solicitud"])
     fechas_df["solo_fecha"] = fechas_df["fecha_solicitud"].dt.date
@@ -393,18 +389,19 @@ def cliente_dashboard(request):
     buffer3.close()
     plt.clf()
 
-    ultimos_predios = predios.order_by("fecha_solicitud")[:10]
+    ultimos_predios = predios.order_by("-fecha_solicitud")[:10000]
 
-    contexto.update(
-        {
-            "graphic": graphic,
-            "grafico_estados": grafico_estados,
-            "grafico_fechas": grafico_fechas,
-            "ultimos_predios": ultimos_predios,
-            "fecha_inicio": fecha_inicio,
-            "fecha_fin": fecha_fin,
-        }
-    )
+    contexto = {
+        "graphic": graphic,
+        "grafico_estados": grafico_estados,
+        "grafico_fechas": grafico_fechas,
+        "ultimos_predios": ultimos_predios,
+        "mensaje": mensaje,
+        "importancia": importancia,
+        "cod_sig": cod_sig,
+        "fecha_inicio": fecha_inicio,
+        "fecha_fin": fecha_fin,
+    }
 
     return render(request, "dashboard.html", contexto)
 
