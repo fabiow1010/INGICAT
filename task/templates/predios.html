@@ -2,47 +2,51 @@
 {% block content %}
 
 <main class="container card card-body mt-5">
+  {% if mensaje %}
+  <div class="alert alert-warning">{{ mensaje }}</div>
+  {% endif %}
   <div class="row">
     <h1>Listado de Trámites</h1>
     <div class="col-md-12 border-bottom mb-4 border-primary position-sticky top-0 bg-white z-index-10">
-      <p>En esta sección se muestran los trámites de predios registrados en el sistema. Puedes filtrar por importancia, código SIG y fechas.</p>
-    <!-- Formulario de Filtros -->
-    <form method="GET" class="mb-5">
-      <div class="row g-4">
-        <div class="col-md-2">
-          <label for="importancia" class="form-label">Importancia</label>
-          <select name="importancia" class="form-select">
-            <option value="">Todos</option>
-            <option value="importante" {% if request.GET.importancia == 'importante' %}selected{% endif %}>Prioridad</option>
-            <option value="normal" {% if request.GET.importancia == 'normal' %}selected{% endif %}>Normal</option>
-          </select>
+      <p>En esta sección se muestran los trámites de predios registrados en el sistema. Puedes filtrar por importancia,
+        código SIG y fechas.</p>
+      <!-- Formulario de Filtros -->
+      <form method="GET" class="mb-5">
+        <div class="row g-4">
+          <div class="col-md-2">
+            <label for="importancia" class="form-label">Importancia</label>
+            <select name="importancia" class="form-select">
+              <option value="">Todos</option>
+              <option value="importante" {% if importancia == "importante" %}selected{% endif %}>Prioridad</option>
+              <option value="normal" {% if importancia == "normal" %}selected{% endif %}>Normal</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="cod_sig" class="form-label">Código SIG</label>
+            <input type="text" name="cod_sig" class="form-control" value="{{ request.GET.cod_sig }}">
+          </div>
+          <div class="col-md-2">
+            <label for="fecha_inicio" class="form-label">Fecha Solicitud</label>
+            <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+          </div>
+          <div class="col-md-2">
+            <label for="fecha_fin" class="form-label">Fecha Fin</label>
+            <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a href="{% url 'predios' %}" class="btn btn-secondary ms-2">Restablecer</a>
+          </div>
         </div>
-        <div class="col-md-2">
-          <label for="cod_sig" class="form-label">Código SIG</label>
-          <input type="text" name="cod_sig" class="form-control" value="{{ request.GET.cod_sig }}">
-        </div>  
-        <div class="col-md-2">
-          <label for="fecha_inicio" class="form-label">Fecha Solicitud</label>
-          <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+      </form>
+      <form method="post" action="{% url 'descargar_excel' %}" class="mt-4 mb-5">
+        {% csrf_token %}
+        <div class="d-flex justify-content-center">
+          <button type="submit" class="btn btn-primary">
+            Descargar informe de Excel
+          </button>
         </div>
-        <div class="col-md-2">
-          <label for="fecha_fin" class="form-label">Fecha Fin</label>
-          <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
-        </div>
-        <div class="col-md-2 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary">Filtrar</button>
-          <a href="{% url 'predios' %}" class="btn btn-secondary ms-2">Restablecer</a>
-        </div>
-      </div>
-    </form>
-    <form method="post" action="{% url 'descargar_excel' %}" class="mt-4 mb-5">
-      {% csrf_token %}
-      <div class="d-flex justify-content-center">
-        <button type="submit" class="btn btn-primary">
-          Descargar informe de Excel
-        </button>
-      </div>
-    </form>
+      </form>
     </div>
     <!-- Tabla Responsiva -->
     <div class="table-responsive">
@@ -70,9 +74,9 @@
             <td>{{ predio.entidad }}</td>
             <td>
               {% if predio.es_importante %}
-                <span class="badge bg-danger">¡Prioridad!</span>
+              <span class="badge bg-danger">¡Prioridad!</span>
               {% else %}
-                <span class="badge bg-success">Normal</span>
+              <span class="badge bg-success">Normal</span>
               {% endif %}
             </td>
             <td>
@@ -84,7 +88,7 @@
       </table>
 
 
-  </div>
+    </div>
 </main>
 
 {% endblock %}

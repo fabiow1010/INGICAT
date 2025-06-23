@@ -89,31 +89,28 @@ def signup(request):
 
 @login_required(login_url="signin")
 def predios(request):
-    predios = Predio.objects.all()
+    mensaje = ""
+    importancia = request.GET.get("importancia", "")
+    fecha_inicio = ""
+    fecha_fin = ""
 
-    # Obtener parámetros de filtro desde el request
-    importancia = request.GET.get("importancia")
-    cod_sig = request.GET.get("cod_sig", "")
-    fecha_inicio = request.GET.get("fecha_inicio")
-    fecha_fin = request.GET.get("fecha_fin")
+    if request.method == "POST":
+        predios = Predio.objects.all()
+    else:
+        predios, fecha_inicio, fecha_fin = filtros(request)
+        if not predios.exists():
+            mensaje = "No se encontraron predios con los filtros aplicados."
 
-    # Filtrar por importancia si está especificado
-    if importancia == "importante":
-        predios = predios.filter(es_importante=True)
-    elif importancia == "normal":
-        predios = predios.filter(es_importante=False)
+    context = {
+        "predios": predios,
+        "mensaje": mensaje,
+        "importancia": importancia,
+        "fecha_inicio": fecha_inicio,
+        "fecha_fin": fecha_fin
+    }
 
-    # Filtrar por rango de fechas si están especificadas
-    if fecha_inicio:
-        predios = predios.filter(fecha_solicitud__gte=fecha_inicio)
-    if fecha_fin:
-        predios = predios.filter(fecha_solicitud__lte=fecha_fin)
-    # Filtrar por codigo SIG
-    if cod_sig:
-        predios = predios.filter(cod_sig=cod_sig)
-
-    context = {"predios": predios}
     return render(request, "predios.html", context)
+
 
 
 @login_required
